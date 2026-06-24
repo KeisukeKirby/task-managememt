@@ -182,6 +182,7 @@ const App = {
     store.on('tasks', () => {
       Sidebar.updateBadges();
       Sidebar.renderProjects();
+      if (this.currentView) this.showView(this.currentView);
     });
 
     store.on('auth', () => {

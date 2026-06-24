@@ -51,6 +51,15 @@ const TaskCard = {
             </span>
           ` : ''}
           <span class="priority-badge priority-${task.priority}">${priority.icon} ${priority.label}</span>
+          ${task.collaborator ? `
+            <span class="tag" style="background: rgba(148, 163, 184, 0.1); color: var(--text-secondary); border: 1px solid var(--border-subtle);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-right:2px;">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              ${task.collaborator}
+            </span>
+          ` : ''}
           ${project ? `
             <span class="tag" style="background: ${project.color}15; color: ${project.color};">
               <span class="tag-dot" style="background: ${project.color}"></span>
@@ -77,7 +86,7 @@ const TaskCard = {
     const project = task.projectId ? store.getProject(task.projectId) : null;
 
     return `
-      <div class="task-table-row" data-task-id="${task.id}" onclick="TaskModal.open(store.getTask('${task.id}'))">
+      <div class="task-table-row" data-task-id="${task.id}" onclick="TaskModal.open(store.getTask('${task.id}'))" draggable="true">
         <div class="task-table-cell" style="display:flex; align-items:center;">
           <input type="checkbox" class="bulk-checkbox admin-only" data-bulk-id="${task.id}" onclick="event.stopPropagation(); ListView.toggleTaskSelection('${task.id}')">
         </div>
@@ -100,6 +109,9 @@ const TaskCard = {
           <span class="priority-badge priority-${task.priority}">${priority.icon} ${priority.label}</span>
         </div>
         <div class="task-table-cell">
+          ${task.collaborator ? `<span style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${task.collaborator}</span>` : '<span style="color:var(--text-muted);font-size:12px;">-</span>'}
+        </div>
+        <div class="task-table-cell" style="color: var(--text-secondary); font-size: 13px;">
           ${task.dueDate ? `<span class="task-card-date ${overdue ? 'overdue' : ''}">${formatDate(task.dueDate)}</span>` : '<span style="color:var(--text-tertiary)">—</span>'}
         </div>
         <div class="task-table-cell">

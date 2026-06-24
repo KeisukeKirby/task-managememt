@@ -381,8 +381,13 @@ class Store {
     }
 
     // Sort
-    const sortBy = filters.sortBy || 'createdAt';
+    const sortBy = filters.sortBy || 'manual';
     const sortDir = filters.sortDir || 'desc';
+
+    if (sortBy === 'manual') {
+       if (sortDir === 'asc') tasks.reverse();
+       return tasks;
+    }
 
     tasks.sort((a, b) => {
       let valA, valB;
@@ -415,6 +420,24 @@ class Store {
     });
 
     return tasks;
+  }
+
+  reorderTasks(draggedId, targetId) {
+    if (!this._guardEdit()) return;
+    const draggedIndex = this._cache.tasks.findIndex(t => t.id === draggedId);
+    const targetIndex = this._cache.tasks.findIndex(t => t.id === targetId);
+    if (draggedIndex === -1 || targetIndex === -1) return;
+    
+    const task = this._cache.tasks[draggedIndex];
+    
+    // Also, if dragging into another group, update the projectId
+    const targetTask = this._cache.tasks[targetIndex];
+    task.projectId = targetTask.projectId;
+
+    this._cache.tasks.splice(draggedIndex, 1);
+    this._cache.tasks.splice(targetIndex, 0, task);
+    
+    this._saveTasks();
   }
 
   getStats() {

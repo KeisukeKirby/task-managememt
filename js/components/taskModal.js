@@ -81,14 +81,25 @@ const TaskModal = {
             <input type="date" id="task-due-input" class="form-input" value="${task.dueDate || ''}">
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">プロジェクト</label>
-          <select id="task-project-input" class="form-select">
-            <option value="">なし</option>
-            ${projects.map(p => `
-              <option value="${p.id}" ${task.projectId === p.id ? 'selected' : ''}>${p.icon} ${p.name}</option>
-            `).join('')}
-          </select>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">プロジェクト</label>
+            <select id="task-project-input" class="form-select">
+              <option value="">なし</option>
+              ${projects.map(p => `
+                <option value="${p.id}" ${task.projectId === p.id ? 'selected' : ''}>${p.icon} ${p.name}</option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">担当者</label>
+            <select id="task-collaborator-input" class="form-select">
+              <option value="">なし</option>
+              ${COLLABORATORS.map(c => `
+                <option value="${c}" ${task.collaborator === c ? 'selected' : ''}>${c}</option>
+              `).join('')}
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">タグ</label>
@@ -183,6 +194,7 @@ const TaskModal = {
       startDate: document.getElementById('task-start-input')?.value || null,
       dueDate: document.getElementById('task-due-input')?.value || null,
       projectId: document.getElementById('task-project-input')?.value || null,
+      collaborator: document.getElementById('task-collaborator-input')?.value || null,
       tags: this._getSelectedTags(),
     };
 

@@ -86,7 +86,18 @@ const CalendarView = {
               const dateStr = day.toISOString().split('T')[0];
               const dayTasks = allTasks.filter(t => {
                 if (!t.dueDate) return false;
-                return new Date(t.dueDate).toDateString() === day.toDateString();
+                const d = new Date(day);
+                d.setHours(0,0,0,0);
+                const due = new Date(t.dueDate);
+                due.setHours(0,0,0,0);
+                
+                if (t.startDate) {
+                   const start = new Date(t.startDate);
+                   start.setHours(0,0,0,0);
+                   return d >= start && d <= due;
+                } else {
+                   return due.getTime() === d.getTime();
+                }
               });
 
               const maxShow = 3;

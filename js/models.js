@@ -10,6 +10,10 @@ const PRIORITIES = {
   LOW:    { key: 'low',    label: '低',   color: '#94a3b8', icon: '⚪', order: 3 },
 };
 
+const COLLABORATORS = [
+  'Shimada', 'Bew', 'Aod', 'Ying', 'Poo', 'Nut', 'Nee', 'Pong'
+];
+
 const STATUSES = {
   TODO:        { key: 'todo',        label: '未着手',   color: '#94a3b8', order: 0 },
   IN_PROGRESS: { key: 'in-progress', label: '進行中',   color: '#6366f1', order: 1 },
@@ -48,6 +52,7 @@ function createTask({
   dueDate = null,
   subtasks = [],
   parentId = null,
+  collaborator = null,
 } = {}) {
   return {
     id: generateId(),
@@ -59,6 +64,7 @@ function createTask({
     tags,
     startDate,
     dueDate,
+    collaborator,
     subtasks: subtasks.map(st => ({
       id: generateId(),
       title: typeof st === 'string' ? st : st.title,
