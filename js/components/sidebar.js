@@ -52,7 +52,14 @@ const Sidebar = {
       const count = store.getProjectTaskCount(project.id);
       return `
         <div class="sidebar-item" data-view="project" data-project-id="${project.id}" data-index="${index}" draggable="true"
-             oncontextmenu="Sidebar.showProjectContextMenu(event, '${project.id}')">
+             oncontextmenu="Sidebar.showProjectContextMenu(event, '${project.id}')"
+             style="padding-left: 8px;">
+          <div class="drag-handle" style="cursor: grab; margin-right: 8px; color: var(--text-muted); display: flex; align-items: center;" title="ドラッグして並び替え">
+            <svg viewBox="0 0 24 24" fill="currentColor" style="width: 14px; height: 14px; opacity: 0.5;">
+              <circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/>
+              <circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+            </svg>
+          </div>
           <span class="sidebar-project-color" style="background: ${project.color}"></span>
           <span class="sidebar-item-text">${project.icon} ${project.name}</span>
           ${count > 0 ? `<span class="sidebar-item-badge">${count}</span>` : ''}
@@ -83,6 +90,10 @@ const Sidebar = {
         this.projectsList.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('drag-over'));
       });
 
+      item.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+      });
+
       item.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
@@ -95,6 +106,7 @@ const Sidebar = {
 
       item.addEventListener('drop', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         item.classList.remove('drag-over');
         const targetIndex = parseInt(item.dataset.index, 10);
         if (draggedIndex !== null && draggedIndex !== targetIndex) {
@@ -156,8 +168,8 @@ const Sidebar = {
 
     const items = [
       {
-        label: '編集',
-        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+        label: '編集する',
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
         action: () => {
           const newName = prompt('プロジェクト名を編集:', project.name);
           if (newName !== null && newName.trim() !== '') {

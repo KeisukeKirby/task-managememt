@@ -287,7 +287,12 @@ const App = {
 
   navigateTo(view, params = {}) {
     this.filters = { ...this.filters, ...params };
-    window.location.hash = view;
+    const currentHash = window.location.hash.slice(1).split('/')[0] || 'dashboard';
+    if (currentHash === view) {
+      this.showView(view);
+    } else {
+      window.location.hash = view;
+    }
   },
 
   showView(view) {
