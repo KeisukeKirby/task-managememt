@@ -48,10 +48,10 @@ const Sidebar = {
     if (!this.projectsList) return;
     const projects = store.getProjects();
 
-    this.projectsList.innerHTML = projects.map(project => {
+    this.projectsList.innerHTML = projects.map((project, index) => {
       const count = store.getProjectTaskCount(project.id);
       return `
-        <div class="sidebar-item" data-view="project" data-project-id="${project.id}"
+        <div class="sidebar-item" data-view="project" data-project-id="${project.id}" data-index="${index}" draggable="true"
              oncontextmenu="Sidebar.showProjectContextMenu(event, '${project.id}')">
           <span class="sidebar-project-color" style="background: ${project.color}"></span>
           <span class="sidebar-item-text">${project.icon} ${project.name}</span>
@@ -60,12 +60,46 @@ const Sidebar = {
       `;
     }).join('');
 
+    let draggedIndex = null;
+
     // Bind click events to project items
     this.projectsList.querySelectorAll('.sidebar-item[data-project-id]').forEach(item => {
       item.addEventListener('click', (e) => {
         if (e.defaultPrevented) return;
         const projectId = item.dataset.projectId;
         App.navigateTo('list', { projectId });
+      });
+
+      // Drag and Drop events
+      item.addEventListener('dragstart', (e) => {
+        draggedIndex = parseInt(item.dataset.index, 10);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', item.dataset.projectId);
+        item.style.opacity = '0.5';
+      });
+
+      item.addEventListener('dragend', () => {
+        item.style.opacity = '';
+        this.projectsList.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('drag-over'));
+      });
+
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        item.classList.add('drag-over');
+      });
+
+      item.addEventListener('dragleave', () => {
+        item.classList.remove('drag-over');
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        item.classList.remove('drag-over');
+        const targetIndex = parseInt(item.dataset.index, 10);
+        if (draggedIndex !== null && draggedIndex !== targetIndex) {
+          store.reorderProjects(draggedIndex, targetIndex);
+        }
       });
     });
   },
@@ -117,7 +151,21 @@ const Sidebar = {
     e.preventDefault();
     e.stopPropagation();
 
+    const project = store.getProject(projectId);
+    if (!project) return;
+
     const items = [
+      {
+        label: '編集',
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+        action: () => {
+          const newName = prompt('プロジェクト名を編集:', project.name);
+          if (newName !== null && newName.trim() !== '') {
+            store.updateProject(projectId, { name: newName.trim() });
+            Toast.show('プロジェクト名を更新しました', 'success');
+          }
+        }
+      },
       {
         label: '削除',
         icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>`,

@@ -479,6 +479,14 @@ class Store {
     return this._cache.tasks.filter(t => t.projectId === projectId).length;
   }
 
+  reorderProjects(startIndex, endIndex) {
+    if (!this._guardEdit()) return;
+    const project = this._cache.projects[startIndex];
+    this._cache.projects.splice(startIndex, 1);
+    this._cache.projects.splice(endIndex, 0, project);
+    this._saveProjects();
+  }
+
   // ── Tags CRUD ──
 
   getTags() {
