@@ -613,7 +613,8 @@ class Store {
       priority: 'high',
       projectId: projectDesign.id,
       tags: [tagDesign.id],
-      dueDate: fmt(today),
+      startDate: fmt(today),
+      dueDate: fmt(tomorrow),
       subtasks: [
         { title: 'ヒーロー画像の差し替え', completed: true },
         { title: 'カラーパレット更新', completed: true },
@@ -625,8 +626,12 @@ class Store {
     this.addTask({
       title: 'APIエンドポイントの認証機能実装',
       description: 'JWT認証をAPIに実装する。リフレッシュトークンの仕組みも含める。',
-      status: 'todo', priority: 'urgent', projectId: projectApp.id,
-      tags: [tagDev.id, tagFeature.id], dueDate: fmt(tomorrow),
+      status: 'todo',
+      priority: 'urgent',
+      projectId: projectApp.id,
+      tags: [tagDev.id, tagFeature.id],
+      startDate: fmt(yesterday),
+      dueDate: fmt(tomorrow),
       subtasks: [
         { title: 'JWT生成ロジック', completed: false },
         { title: 'ミドルウェア作成', completed: false },
@@ -638,8 +643,12 @@ class Store {
     this.addTask({
       title: 'Q3マーケティング計画書作成',
       description: '第3四半期のマーケティング戦略と予算案を作成。SNS広告とコンテンツマーケティングを中心に。',
-      status: 'review', priority: 'high', projectId: projectMarketing.id,
-      tags: [tagDoc.id], dueDate: fmt(dayAfter),
+      status: 'review',
+      priority: 'high',
+      projectId: projectMarketing.id,
+      tags: [tagDoc.id],
+      startDate: fmt(tomorrow),
+      dueDate: fmt(nextWeek),
     });
 
     this.addTask({

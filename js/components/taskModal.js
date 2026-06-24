@@ -73,18 +73,22 @@ const TaskModal = {
         </div>
         <div class="form-row">
           <div class="form-group">
+            <label class="form-label">開始日</label>
+            <input type="date" id="task-start-input" class="form-input" value="${task.startDate || ''}">
+          </div>
+          <div class="form-group">
             <label class="form-label">期限</label>
             <input type="date" id="task-due-input" class="form-input" value="${task.dueDate || ''}">
           </div>
-          <div class="form-group">
-            <label class="form-label">プロジェクト</label>
-            <select id="task-project-input" class="form-select">
-              <option value="">なし</option>
-              ${projects.map(p => `
-                <option value="${p.id}" ${task.projectId === p.id ? 'selected' : ''}>${p.icon} ${p.name}</option>
-              `).join('')}
-            </select>
-          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">プロジェクト</label>
+          <select id="task-project-input" class="form-select">
+            <option value="">なし</option>
+            ${projects.map(p => `
+              <option value="${p.id}" ${task.projectId === p.id ? 'selected' : ''}>${p.icon} ${p.name}</option>
+            `).join('')}
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label">タグ</label>
@@ -176,6 +180,7 @@ const TaskModal = {
       description: document.getElementById('task-desc-input')?.value.trim() || '',
       status: document.getElementById('task-status-input')?.value || 'todo',
       priority: document.getElementById('task-priority-input')?.value || 'medium',
+      startDate: document.getElementById('task-start-input')?.value || null,
       dueDate: document.getElementById('task-due-input')?.value || null,
       projectId: document.getElementById('task-project-input')?.value || null,
       tags: this._getSelectedTags(),

@@ -44,6 +44,7 @@ function createTask({
   priority = PRIORITIES.MEDIUM.key,
   projectId = null,
   tags = [],
+  startDate = null,
   dueDate = null,
   subtasks = [],
   parentId = null,
@@ -56,6 +57,7 @@ function createTask({
     priority,
     projectId,
     tags,
+    startDate,
     dueDate,
     subtasks: subtasks.map(st => ({
       id: generateId(),

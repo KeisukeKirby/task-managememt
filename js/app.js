@@ -277,7 +277,7 @@ const App = {
     const hash = window.location.hash.slice(1) || 'dashboard';
     const [view, ...params] = hash.split('/');
 
-    const validViews = ['dashboard', 'list', 'kanban', 'calendar'];
+    const validViews = ['dashboard', 'list', 'kanban', 'calendar', 'gantt'];
     if (validViews.includes(view)) {
       this.showView(view);
     } else {
@@ -298,6 +298,7 @@ const App = {
       list: 'タスク一覧',
       kanban: 'カンバンボード',
       calendar: 'カレンダー',
+      gantt: 'ガントチャート',
     };
 
     Header.setTitle(titles[view] || view);
@@ -315,6 +316,9 @@ const App = {
         break;
       case 'calendar':
         CalendarView.render();
+        break;
+      case 'gantt':
+        GanttView.render();
         break;
       default:
         DashboardView.render();
@@ -407,6 +411,9 @@ const App = {
         break;
       case '4':
         App.navigateTo('calendar');
+        break;
+      case '5':
+        App.navigateTo('gantt');
         break;
     }
   },
