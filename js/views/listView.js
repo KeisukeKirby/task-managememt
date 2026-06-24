@@ -121,6 +121,73 @@ const ListView = {
     this.bindDragEvents();
   },
 
+  bindDragEvents() {
+    let draggedTaskId = null;
+
+    const rows = document.querySelectorAll('.task-table-row');
+    rows.forEach(row => {
+      row.addEventListener('dragstart', (e) => {
+        if (!store.isAdmin) {
+          e.preventDefault();
+          return;
+        }
+        draggedTaskId = row.dataset.taskId;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', draggedTaskId);
+        row.style.opacity = '0.5';
+        
+        // Add a class to body to prevent text selection during drag
+        document.body.classList.add('is-dragging');
+      });
+
+      row.addEventListener('dragend', () => {
+        row.style.opacity = '';
+        rows.forEach(r => r.classList.remove('drag-over-top', 'drag-over-bottom'));
+        document.body.classList.remove('is-dragging');
+      });
+
+      row.addEventListener('dragenter', (e) => {
+        if (!store.isAdmin) return;
+        e.preventDefault();
+      });
+
+      row.addEventListener('dragover', (e) => {
+        if (!store.isAdmin) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (draggedTaskId === row.dataset.taskId) return;
+        
+        const rect = row.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        
+        row.classList.remove('drag-over-top', 'drag-over-bottom');
+        if (e.clientY < midY) {
+          row.classList.add('drag-over-top');
+        } else {
+          row.classList.add('drag-over-bottom');
+        }
+      });
+
+      row.addEventListener('dragleave', () => {
+        row.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+
+      row.addEventListener('drop', (e) => {
+        if (!store.isAdmin) return;
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isTop = row.classList.contains('drag-over-top');
+        row.classList.remove('drag-over-top', 'drag-over-bottom');
+        
+        const targetTaskId = row.dataset.taskId;
+        if (draggedTaskId && draggedTaskId !== targetTaskId) {
+          store.reorderTasks(draggedTaskId, targetTaskId, isTop ? 'before' : 'after');
+        }
+      });
+    });
+  },
+
   toggleTaskSelection(taskId) {
     if (this.selectedTasks.has(taskId)) {
       this.selectedTasks.delete(taskId);

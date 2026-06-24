@@ -276,6 +276,36 @@ class Store {
     this._saveTasks();
   }
 
+  reorderTasks(draggedId, targetId, position = 'before') {
+    if (!this._guardEdit()) return;
+
+    const draggedIndex = this._cache.tasks.findIndex(t => t.id === draggedId);
+    const targetIndex = this._cache.tasks.findIndex(t => t.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    const task = this._cache.tasks[draggedIndex];
+    const targetTask = this._cache.tasks[targetIndex];
+
+    // If grouped by project, dragging across groups changes the project
+    if (task.projectId !== targetTask.projectId) {
+      task.projectId = targetTask.projectId;
+    }
+
+    this._cache.tasks.splice(draggedIndex, 1);
+    
+    // Recalculate target index since the array changed
+    const newTargetIndex = this._cache.tasks.findIndex(t => t.id === targetId);
+    
+    if (position === 'before') {
+      this._cache.tasks.splice(newTargetIndex, 0, task);
+    } else {
+      this._cache.tasks.splice(newTargetIndex + 1, 0, task);
+    }
+
+    this._saveTasks();
+  }
+
   toggleSubtask(taskId, subtaskId) {
     if (!this._guardEdit()) return null;
     const task = this.getTask(taskId);
@@ -380,6 +410,10 @@ class Store {
       tasks = tasks.filter(t => isOverdue(t));
     }
 
+    if (filters.dueSoon) {
+      tasks = tasks.filter(t => isDueSoon(t) && t.status !== STATUSES.DONE.key);
+    }
+
     // Sort
     const sortBy = filters.sortBy || 'manual';
     const sortDir = filters.sortDir || 'desc';
@@ -447,6 +481,7 @@ class Store {
     const inProgress = tasks.filter(t => t.status === STATUSES.IN_PROGRESS.key).length;
     const overdue = this.getOverdueTasks().length;
     const todayCount = this.getTodayTasks().length;
+    const dueSoonCount = this.getUpcomingTasks().length;
 
     return {
       total,
@@ -456,6 +491,7 @@ class Store {
       review: tasks.filter(t => t.status === STATUSES.REVIEW.key).length,
       overdue,
       today: todayCount,
+      dueSoon: dueSoonCount,
       completionRate: total > 0 ? Math.round((completed / total) * 100) : 0,
     };
   }

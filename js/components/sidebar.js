@@ -120,6 +120,7 @@ const Sidebar = {
     const stats = store.getStats();
     const todayBadge = document.getElementById('badge-today');
     const overdueBadge = document.getElementById('badge-overdue');
+    const dueSoonBadge = document.getElementById('badge-due-soon');
 
     if (todayBadge) {
       todayBadge.textContent = stats.today;
@@ -128,6 +129,10 @@ const Sidebar = {
     if (overdueBadge) {
       overdueBadge.textContent = stats.overdue;
       overdueBadge.style.display = stats.overdue > 0 ? '' : 'none';
+    }
+    if (dueSoonBadge) {
+      dueSoonBadge.textContent = stats.dueSoon;
+      dueSoonBadge.style.display = stats.dueSoon > 0 ? '' : 'none';
     }
   },
 

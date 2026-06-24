@@ -109,6 +109,15 @@
             <span class="sidebar-item-text">期限超過</span>
             <span class="sidebar-item-badge" id="badge-overdue" style="display:none; background: rgba(244, 63, 94, 0.1); color: #f43f5e;">0</span>
           </div>
+          <div class="sidebar-item" onclick="App.filters = { dueSoon: true }; App.navigateTo('list')">
+            <span class="sidebar-item-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </span>
+            <span class="sidebar-item-text">締め切り間近</span>
+            <span class="sidebar-item-badge" id="badge-due-soon" style="display:none; background: rgba(245, 158, 11, 0.1); color: #f59e0b;">0</span>
+          </div>
         </div>
 
         <!-- Projects -->

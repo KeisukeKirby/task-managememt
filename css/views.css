@@ -169,14 +169,39 @@
   border-bottom: 1px solid var(--border-subtle);
   transition: background-color var(--transition-fast);
   cursor: pointer;
-}
-
-.task-table-row:last-child {
-  border-bottom: none;
+  position: relative;
 }
 
 .task-table-row:hover {
   background: var(--bg-surface-hover);
+}
+
+.task-table-row.drag-over-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-primary-500);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.task-table-row.drag-over-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-primary-500);
+  z-index: 10;
+  pointer-events: none;
+}
+
+body.is-dragging {
+  user-select: none;
 }
 
 .task-table-cell {
