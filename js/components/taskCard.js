@@ -78,6 +78,9 @@ const TaskCard = {
 
     return `
       <div class="task-table-row" data-task-id="${task.id}" onclick="TaskModal.open(store.getTask('${task.id}'))">
+        <div class="task-table-cell" style="display:flex; align-items:center;">
+          <input type="checkbox" class="bulk-checkbox admin-only" data-bulk-id="${task.id}" onclick="event.stopPropagation(); ListView.toggleTaskSelection('${task.id}')">
+        </div>
         <div class="task-table-cell">
           <div class="task-card-checkbox ${isCompleted ? 'checked' : ''}"
                onclick="event.stopPropagation(); TaskCard.toggleComplete('${task.id}')">
