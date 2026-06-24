@@ -429,7 +429,7 @@
 
 .calendar-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: 0.6fr repeat(5, 1fr) 0.6fr;
   border-bottom: 1px solid var(--border-default);
 }
 
@@ -441,11 +441,16 @@
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border-right: 1px solid transparent;
+}
+
+.calendar-weekday:nth-child(7n) {
+  border-right: none;
 }
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: 0.6fr repeat(5, 1fr) 0.6fr;
 }
 
 .calendar-day {
