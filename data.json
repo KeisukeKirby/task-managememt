@@ -1,7 +1,728 @@
 {
   "version": 1,
-  "exportedAt": "2026-06-24T00:00:00.000Z",
-  "projects": [],
-  "tags": [],
-  "tasks": []
+  "exportedAt": "2026-06-24T07:51:43.696Z",
+  "tasks": [
+    {
+      "id": "mqrrnz9r36bl5x2l4",
+      "title": "Lazada",
+      "description": "",
+      "status": "todo",
+      "priority": "urgent",
+      "projectId": "mqrpffwaheujbc1wy",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:43:26.031Z",
+      "updatedAt": "2026-06-24T07:43:26.031Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrrntzmyk21ugwpk",
+      "title": "Shopee",
+      "description": "",
+      "status": "todo",
+      "priority": "urgent",
+      "projectId": "mqrpffwaheujbc1wy",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:43:19.186Z",
+      "updatedAt": "2026-06-24T07:43:19.186Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrrfx04iz4rrrute",
+      "title": "自社EC",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrpffwaheujbc1wy",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": "Bew",
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:37:09.844Z",
+      "updatedAt": "2026-06-24T07:43:31.418Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrrfkewncmpy56db",
+      "title": "LINE OA",
+      "description": "",
+      "status": "todo",
+      "priority": "medium",
+      "projectId": "mqrpffwaheujbc1wy",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:36:53.528Z",
+      "updatedAt": "2026-06-24T07:37:14.411Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrrezff7h1ujhhq7",
+      "title": "Google Map",
+      "description": "",
+      "status": "todo",
+      "priority": "low",
+      "projectId": "mqrpfkmqhrz3tmys3",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:36:26.331Z",
+      "updatedAt": "2026-06-24T07:44:57.724Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrrcx2j6ir4p9stj",
+      "title": "SNS",
+      "description": "",
+      "status": "todo",
+      "priority": "medium",
+      "projectId": "mqrpffwaheujbc1wy",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:34:49.963Z",
+      "updatedAt": "2026-06-24T07:34:49.963Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrrcdhsaihh07fy6",
+      "title": "ブランド名・ブランドロゴ策定",
+      "description": "",
+      "status": "todo",
+      "priority": "medium",
+      "projectId": "mqrpgag88pxv91vut",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": "Shimada",
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:34:24.592Z",
+      "updatedAt": "2026-06-24T07:34:24.592Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr9m26rlbklbtpw",
+      "title": "Tabio Forwarder 打ち合わせ",
+      "description": "10時",
+      "status": "todo",
+      "priority": "low",
+      "projectId": "mqrpfovdxer606y9i",
+      "tags": [],
+      "startDate": "2026-06-29",
+      "dueDate": "2026-06-29",
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:32:15.726Z",
+      "updatedAt": "2026-06-24T07:32:15.726Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr7vdu5t8mb4eks",
+      "title": "GM連携確立",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrptqvgyt63nnhl6",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": "Bew",
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:30:54.498Z",
+      "updatedAt": "2026-06-24T07:30:54.498Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr6gstt8iwe4e99",
+      "title": "POS研修",
+      "description": "10-11",
+      "status": "todo",
+      "priority": "urgent",
+      "projectId": "mqrpfkmqhrz3tmys3",
+      "tags": [],
+      "startDate": "2026-06-25",
+      "dueDate": "2026-06-25",
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:29:48.942Z",
+      "updatedAt": "2026-06-24T07:29:48.942Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr40lizhxwuda5i",
+      "title": "チャット管理",
+      "description": "",
+      "status": "todo",
+      "priority": "urgent",
+      "projectId": "mqrptqvgyt63nnhl6",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:27:54.630Z",
+      "updatedAt": "2026-06-24T07:27:54.630Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr3bmfm9hcb98ik",
+      "title": "返品率改善",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrpffwaheujbc1wy",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:27:22.263Z",
+      "updatedAt": "2026-06-24T07:27:22.263Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr2rjntq7juv0bw",
+      "title": "シューズ事業管理・運用リサーチ",
+      "description": "",
+      "status": "todo",
+      "priority": "medium",
+      "projectId": "mqrijz44wbake67u4",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:26:56.243Z",
+      "updatedAt": "2026-06-24T07:26:56.243Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr1yjn1l6vhaxmp",
+      "title": "発注内容提案機能",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrijz44wbake67u4",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:26:18.659Z",
+      "updatedAt": "2026-06-24T07:26:18.659Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr13jaqm4i14obf",
+      "title": "販売データ自動集計",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrijz44wbake67u4",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:25:38.470Z",
+      "updatedAt": "2026-06-24T07:25:38.470Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrr0duyqguv9pj3l",
+      "title": "Botpress",
+      "description": "",
+      "status": "todo",
+      "priority": "urgent",
+      "projectId": "mqrijz44wbake67u4",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:25:05.194Z",
+      "updatedAt": "2026-06-24T07:25:05.194Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrqze6ugb6nwehxr",
+      "title": "アートワーク確認　本部との調整",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrpfkmqhrz3tmys3",
+      "tags": [],
+      "startDate": null,
+      "dueDate": "2026-07-15",
+      "collaborator": "Aod",
+      "subtasks": [
+        {
+          "id": "mqrqzm21fondzskto",
+          "title": "リスト作成",
+          "completed": false
+        }
+      ],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:24:18.966Z",
+      "updatedAt": "2026-06-24T07:24:34.932Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrqyopdwdzs6068n",
+      "title": "店舗視察",
+      "description": "",
+      "status": "todo",
+      "priority": "urgent",
+      "projectId": "mqrpfkmqhrz3tmys3",
+      "tags": [],
+      "startDate": null,
+      "dueDate": "2026-06-30",
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:23:45.937Z",
+      "updatedAt": "2026-06-24T07:23:45.937Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrqx5zmsnxrtxd5d",
+      "title": "オープンプロモーション",
+      "description": "知ってる層に15-20%offで販売し100足ほど売る",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [],
+      "startDate": null,
+      "dueDate": "2026-06-26",
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:22:35.026Z",
+      "updatedAt": "2026-06-24T07:22:35.026Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrqo9ih85zhv1u5n",
+      "title": "POS確認",
+      "description": "SKU番号とPOSの連携確認",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [],
+      "startDate": null,
+      "dueDate": "2026-06-30",
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:15:39.689Z",
+      "updatedAt": "2026-06-24T07:15:51.904Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrqmikghmg37xp8z",
+      "title": "SNSアカウント作成",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [],
+      "startDate": null,
+      "dueDate": "2026-06-30",
+      "collaborator": "Shimada",
+      "subtasks": [
+        {
+          "id": "mqrqpcy97t4t22eew",
+          "title": "Facebook",
+          "completed": false
+        },
+        {
+          "id": "mqrqpguq8zgns4k2g",
+          "title": "Instagram",
+          "completed": false
+        },
+        {
+          "id": "mqrqpqedw6wzcjc43",
+          "title": "カバーイメージ画像",
+          "completed": false
+        }
+      ],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:14:18.112Z",
+      "updatedAt": "2026-06-24T07:16:52.216Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrqgofuqk4u4ejg1",
+      "title": "クアラルンプール　POPUP",
+      "description": "",
+      "status": "todo",
+      "priority": "high",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [],
+      "startDate": null,
+      "dueDate": null,
+      "collaborator": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T07:09:45.786Z",
+      "updatedAt": "2026-06-24T07:09:45.786Z",
+      "completedAt": null
+    },
+    {
+      "id": "mqrijz4685m273rp7",
+      "title": "店舗LPページ作成",
+      "description": "タイのページを確認",
+      "status": "todo",
+      "priority": "medium",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [
+        "mqrijz450f4r6lxhe"
+      ],
+      "dueDate": "2026-06-26",
+      "subtasks": [
+        {
+          "id": "mqrjjsaabl5u8jt7q",
+          "title": "テスト",
+          "completed": false
+        }
+      ],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.662Z",
+      "updatedAt": "2026-06-24T06:54:31.673Z",
+      "completedAt": null,
+      "startDate": "2026-06-24",
+      "collaborator": null
+    },
+    {
+      "id": "mqrijz46rsiincp6f",
+      "title": "売上データレポート作成",
+      "description": "",
+      "status": "todo",
+      "priority": "low",
+      "projectId": "mqrijz44wbake67u4",
+      "tags": [
+        "mqrijz45mc334rr4w"
+      ],
+      "dueDate": null,
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.662Z",
+      "updatedAt": "2026-06-24T06:34:40.540Z",
+      "completedAt": null,
+      "startDate": null
+    },
+    {
+      "id": "mqrijz46ui8hyqaj6",
+      "title": "書類確認",
+      "description": "修正が反映されているか",
+      "status": "todo",
+      "priority": "low",
+      "projectId": "mqrijz44ucv941f3n",
+      "tags": [],
+      "dueDate": "2026-06-24",
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.662Z",
+      "updatedAt": "2026-06-24T06:30:16.890Z",
+      "completedAt": null,
+      "startDate": "2026-06-24"
+    },
+    {
+      "id": "mqrijz46ww0xryqbq",
+      "title": "キャッシュフロー修正",
+      "description": "",
+      "status": "todo",
+      "priority": "medium",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [
+        "mqrijz45479bmd5ys"
+      ],
+      "dueDate": "2026-06-30",
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.662Z",
+      "updatedAt": "2026-06-24T06:29:12.754Z",
+      "completedAt": null,
+      "startDate": "2026-06-24"
+    },
+    {
+      "id": "mqrijz46r8y61dx7e",
+      "title": "在庫管理システム構築",
+      "description": "",
+      "status": "in-progress",
+      "priority": "medium",
+      "projectId": "mqrijz44wbake67u4",
+      "tags": [
+        "mqrijz4519xjcfddo"
+      ],
+      "dueDate": "2026-07-01",
+      "subtasks": [
+        {
+          "id": "mqrijz46fpm6lie27",
+          "title": "投稿カレンダー作成",
+          "completed": true
+        },
+        {
+          "id": "mqrijz46twjiemrv1",
+          "title": "画像デザイン 10件",
+          "completed": true
+        },
+        {
+          "id": "mqrijz461uw6pobt2",
+          "title": "画像デザイン 残り10件",
+          "completed": false
+        },
+        {
+          "id": "mqrijz46lpqfdm15n",
+          "title": "コピーライティング",
+          "completed": false
+        }
+      ],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.662Z",
+      "updatedAt": "2026-06-24T06:35:12.254Z",
+      "completedAt": null,
+      "startDate": null
+    },
+    {
+      "id": "mqrijz453ezp4rhum",
+      "title": "販売開始",
+      "description": "損益分岐点は100足/月\n200足/月で安定したらKL目指す\nDavidさんと卸取引したい",
+      "status": "in-progress",
+      "priority": "high",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [
+        "mqrijz450f4r6lxhe"
+      ],
+      "dueDate": "2026-07-05",
+      "subtasks": [
+        {
+          "id": "mqrijz45rakh1mx57",
+          "title": "パフォーマンス計測",
+          "completed": true
+        },
+        {
+          "id": "mqrijz45xxv6qr5tx",
+          "title": "コード分割",
+          "completed": false
+        },
+        {
+          "id": "mqrijz45i2jjuqwqd",
+          "title": "レイジーロード導入",
+          "completed": false
+        }
+      ],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.661Z",
+      "updatedAt": "2026-06-24T06:31:27.831Z",
+      "completedAt": null,
+      "startDate": "2026-06-24"
+    },
+    {
+      "id": "mqrijz45afrfyp9ch",
+      "title": "Line Harness導入",
+      "description": "",
+      "status": "review",
+      "priority": "high",
+      "projectId": "mqrijz44wbake67u4",
+      "tags": [
+        "mqrijz45mc334rr4w"
+      ],
+      "dueDate": "2026-06-26",
+      "subtasks": [],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.661Z",
+      "updatedAt": "2026-06-24T06:35:40.175Z",
+      "completedAt": null,
+      "startDate": null
+    },
+    {
+      "id": "mqrijz45h2xcneofg",
+      "title": "Shopee/Lazadaページ構築",
+      "description": "販売できる商品から登録",
+      "status": "in-progress",
+      "priority": "high",
+      "projectId": "mqrijz442gbmpdtjz",
+      "tags": [
+        "mqrijz4519xjcfddo"
+      ],
+      "dueDate": "2026-06-29",
+      "subtasks": [
+        {
+          "id": "mqrijz45bd1o4imre",
+          "title": "ヒーロー画像の差し替え",
+          "completed": true
+        },
+        {
+          "id": "mqrijz453zgqydikd",
+          "title": "カラーパレット更新",
+          "completed": true
+        },
+        {
+          "id": "mqrijz450z8s2a05d",
+          "title": "CTAボタンのA/Bテスト用デザイン",
+          "completed": false
+        },
+        {
+          "id": "mqrijz45gl677gidz",
+          "title": "レスポンシブ確認",
+          "completed": false
+        }
+      ],
+      "parentId": null,
+      "createdAt": "2026-06-24T03:28:22.661Z",
+      "updatedAt": "2026-06-24T07:40:03.255Z",
+      "completedAt": null,
+      "startDate": "2026-06-24",
+      "collaborator": "Ying"
+    }
+  ],
+  "projects": [
+    {
+      "id": "mqrijz442gbmpdtjz",
+      "name": "Malaysia",
+      "color": "#6366f1",
+      "icon": "🎨",
+      "description": "",
+      "createdAt": "2026-06-24T03:28:22.660Z"
+    },
+    {
+      "id": "mqrijz44ucv941f3n",
+      "name": "輸出入関連",
+      "color": "#10b981",
+      "icon": "📱",
+      "description": "",
+      "createdAt": "2026-06-24T03:28:22.660Z"
+    },
+    {
+      "id": "mqrijz44wbake67u4",
+      "name": "プロジェクト",
+      "color": "#f59e0b",
+      "icon": "📣",
+      "description": "",
+      "createdAt": "2026-06-24T03:28:22.660Z"
+    },
+    {
+      "id": "mqrpffwaheujbc1wy",
+      "name": "オンライン",
+      "color": "#a855f7",
+      "icon": "📁",
+      "description": "",
+      "createdAt": "2026-06-24T06:40:48.442Z"
+    },
+    {
+      "id": "mqrpfkmqhrz3tmys3",
+      "name": "店舗",
+      "color": "#8b5cf6",
+      "icon": "📱",
+      "description": "",
+      "createdAt": "2026-06-24T06:40:54.578Z"
+    },
+    {
+      "id": "mqrpfovdxer606y9i",
+      "name": "Tabio",
+      "color": "#ec4899",
+      "icon": "🎨",
+      "description": "",
+      "createdAt": "2026-06-24T06:41:00.073Z"
+    },
+    {
+      "id": "mqrpfsl5ber7hc6ay",
+      "name": "Oleno",
+      "color": "#6366f1",
+      "icon": "🌐",
+      "description": "",
+      "createdAt": "2026-06-24T06:41:04.889Z"
+    },
+    {
+      "id": "mqrpgag88pxv91vut",
+      "name": "AQO°",
+      "color": "#10b981",
+      "icon": "🔧",
+      "description": "",
+      "createdAt": "2026-06-24T06:41:28.040Z"
+    },
+    {
+      "id": "mqrptqvgyt63nnhl6",
+      "name": "その他",
+      "color": "#6366f1",
+      "icon": "📊",
+      "description": "",
+      "createdAt": "2026-06-24T06:51:55.852Z"
+    }
+  ],
+  "tags": [
+    {
+      "id": "mqrijz4519xjcfddo",
+      "name": "デザイン",
+      "color": "#6366f1",
+      "bgColor": "rgba(99, 102, 241, 0.1)",
+      "colorIndex": 0
+    },
+    {
+      "id": "mqrijz450f4r6lxhe",
+      "name": "開発",
+      "color": "#a855f7",
+      "bgColor": "rgba(168, 85, 247, 0.1)",
+      "colorIndex": 1
+    },
+    {
+      "id": "mqrijz45e6cwbiw6t",
+      "name": "バグ",
+      "color": "#f43f5e",
+      "bgColor": "rgba(244, 63, 94, 0.1)",
+      "colorIndex": 3
+    },
+    {
+      "id": "mqrijz4542d2lk72w",
+      "name": "機能追加",
+      "color": "#10b981",
+      "bgColor": "rgba(16, 185, 129, 0.1)",
+      "colorIndex": 5
+    },
+    {
+      "id": "mqrijz45mc334rr4w",
+      "name": "ドキュメント",
+      "color": "#06b6d4",
+      "bgColor": "rgba(6, 182, 212, 0.1)",
+      "colorIndex": 6
+    },
+    {
+      "id": "mqrijz45479bmd5ys",
+      "name": "ミーティング",
+      "color": "#f59e0b",
+      "bgColor": "rgba(245, 158, 11, 0.1)",
+      "colorIndex": 4
+    }
+  ]
 }
