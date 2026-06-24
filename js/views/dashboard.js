@@ -34,6 +34,35 @@ const DashboardView = {
           <p class="dashboard-greeting-sub">${todayStr}</p>
         </div>
 
+        <!-- External Links -->
+        <div class="dashboard-links" style="display: flex; gap: var(--space-3); margin-bottom: var(--space-6); flex-wrap: wrap;">
+          <a href="https://shimada-dashboard.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn" style="background: var(--bg-surface); border: 1px solid var(--border-default); font-size: var(--text-sm); font-weight: var(--weight-medium); box-shadow: var(--shadow-sm);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            経営ダッシュボード
+          </a>
+          <a href="https://antigravity-hub-two.vercel.app/" target="_blank" rel="noopener noreferrer" class="btn" style="background: var(--bg-surface); border: 1px solid var(--border-default); font-size: var(--text-sm); font-weight: var(--weight-medium); box-shadow: var(--shadow-sm);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            プロジェクト管理ダッシュボード
+          </a>
+          <a href="https://calendar.google.com/calendar/u/0/r/week/2026/6/26" target="_blank" rel="noopener noreferrer" class="btn" style="background: var(--bg-surface); border: 1px solid var(--border-default); font-size: var(--text-sm); font-weight: var(--weight-medium); box-shadow: var(--shadow-sm);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            Googleカレンダー
+          </a>
+        </div>
+
         <!-- Stats -->
         <div class="dashboard-stats">
           <div class="stat-card">
