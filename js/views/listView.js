@@ -78,7 +78,7 @@ const ListView = {
             <div>タイトル</div>
             <div>ステータス</div>
             <div>優先度</div>
-            <div>担当者</div>
+            <div>コラボレーター</div>
             <div>期限</div>
             <div>プロジェクト</div>
             <div></div>

@@ -92,7 +92,7 @@ const TaskModal = {
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">担当者</label>
+            <label class="form-label">コラボレーター</label>
             <select id="task-collaborator-input" class="form-select">
               <option value="">なし</option>
               ${COLLABORATORS.map(c => `
@@ -207,8 +207,6 @@ const TaskModal = {
     }
 
     this.close();
-    App.refreshCurrentView();
-    Sidebar.updateBadges();
   },
 
   deleteTask() {
@@ -217,8 +215,6 @@ const TaskModal = {
       store.deleteTask(this.currentTask.id);
       Toast.show('タスクを削除しました', 'success');
       this.close();
-      App.refreshCurrentView();
-      Sidebar.updateBadges();
     }
   },
 

@@ -100,6 +100,14 @@ const CalendarView = {
                 }
               });
 
+              // Sort by startDate, then id to make vertical position deterministic across days
+              dayTasks.sort((a, b) => {
+                 const startA = a.startDate ? new Date(a.startDate).getTime() : new Date(a.dueDate).getTime();
+                 const startB = b.startDate ? new Date(b.startDate).getTime() : new Date(b.dueDate).getTime();
+                 if (startA !== startB) return startA - startB;
+                 return a.id.localeCompare(b.id);
+              });
+
               const maxShow = 3;
               const visibleTasks = dayTasks.slice(0, maxShow);
               const remaining = dayTasks.length - maxShow;
@@ -111,9 +119,26 @@ const CalendarView = {
                   <div class="calendar-day-tasks">
                     ${visibleTasks.map(t => {
                       const colors = statusColors[t.status] || statusColors['todo'];
+                      
+                      let spanClass = '';
+                      let showText = true;
+                      const dTime = new Date(day).setHours(0,0,0,0);
+                      const dueTime = new Date(t.dueDate).setHours(0,0,0,0);
+                      const startTime = t.startDate ? new Date(t.startDate).setHours(0,0,0,0) : dueTime;
+                      
+                      if (startTime !== dueTime) {
+                        if (dTime === startTime) spanClass = 'task-span-start';
+                        else if (dTime === dueTime) spanClass = 'task-span-end';
+                        else if (dTime > startTime && dTime < dueTime) spanClass = 'task-span-middle';
+
+                        if (day.getDay() !== 0 && dTime !== startTime) {
+                           showText = false;
+                        }
+                      }
+
                       return `
-                        <div class="calendar-task-item" 
-                             style="background: ${colors.bg}; color: ${colors.text};"
+                        <div class="calendar-task-item ${spanClass}" 
+                             style="background: ${colors.bg}; color: ${showText ? colors.text : 'transparent'};"
                              onclick="event.stopPropagation(); TaskModal.open(store.getTask('${t.id}'))"
                              title="${t.title}">
                           ${t.title}

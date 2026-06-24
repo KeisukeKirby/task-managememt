@@ -517,6 +517,31 @@
   text-overflow: ellipsis;
   cursor: pointer;
   transition: opacity var(--transition-fast);
+  border: 1px solid transparent; /* To prevent height jumping if we add borders later */
+}
+
+.calendar-task-item.task-span-start {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  margin-right: calc(var(--space-2) * -1 - 1px);
+  position: relative;
+  z-index: 2;
+}
+
+.calendar-task-item.task-span-middle {
+  border-radius: 0;
+  margin-left: calc(var(--space-2) * -1);
+  margin-right: calc(var(--space-2) * -1 - 1px);
+  position: relative;
+  z-index: 1;
+}
+
+.calendar-task-item.task-span-end {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: calc(var(--space-2) * -1);
+  position: relative;
+  z-index: 1;
 }
 
 .calendar-task-item:hover {
