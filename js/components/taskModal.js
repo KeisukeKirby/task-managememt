@@ -186,27 +186,32 @@ const TaskModal = {
       return;
     }
 
-    const taskData = {
-      title,
-      description: document.getElementById('task-desc-input')?.value.trim() || '',
-      status: document.getElementById('task-status-input')?.value || 'todo',
-      priority: document.getElementById('task-priority-input')?.value || 'medium',
-      startDate: document.getElementById('task-start-input')?.value || null,
-      dueDate: document.getElementById('task-due-input')?.value || null,
-      projectId: document.getElementById('task-project-input')?.value || null,
-      collaborator: document.getElementById('task-collaborator-input')?.value || null,
-      tags: this._getSelectedTags(),
-    };
+    try {
+      const taskData = {
+        title,
+        description: document.getElementById('task-desc-input')?.value.trim() || '',
+        status: document.getElementById('task-status-input')?.value || 'todo',
+        priority: document.getElementById('task-priority-input')?.value || 'medium',
+        startDate: document.getElementById('task-start-input')?.value || null,
+        dueDate: document.getElementById('task-due-input')?.value || null,
+        projectId: document.getElementById('task-project-input')?.value || null,
+        collaborator: document.getElementById('task-collaborator-input')?.value || null,
+        tags: this._getSelectedTags(),
+      };
 
-    if (this.currentTask) {
-      store.updateTask(this.currentTask.id, taskData);
-      Toast.show('タスクを更新しました', 'success');
-    } else {
-      store.addTask(taskData);
-      Toast.show('タスクを作成しました', 'success');
+      if (this.currentTask) {
+        store.updateTask(this.currentTask.id, taskData);
+        Toast.show('タスクを更新しました', 'success');
+      } else {
+        store.addTask(taskData);
+        Toast.show('タスクを作成しました', 'success');
+      }
+    } catch (e) {
+      console.error('Failed to save task:', e);
+      Toast.show('エラーが発生しました: ' + e.message, 'error');
+    } finally {
+      this.close();
     }
-
-    this.close();
   },
 
   deleteTask() {
