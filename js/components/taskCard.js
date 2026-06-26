@@ -5,14 +5,14 @@
 
 const TaskCard = {
   render(task, options = {}) {
-    const priority = getPriorityInfo(task.priority);
-    const statusInfo = getStatusInfo(task.status);
+    const importance = getImportanceInfo(task.importance);
+    const urgency = getUrgencyInfo(task.urgency);
     const isCompleted = task.status === STATUSES.DONE.key;
     const overdue = isOverdue(task);
     const subtaskProgress = getSubtaskProgress(task);
     const project = task.projectId ? store.getProject(task.projectId) : null;
 
-    const showPriorityBar = task.priority === 'urgent' || task.priority === 'high';
+    const showPriorityBar = task.importance === 'high' || task.urgency === 'high';
 
     return `
       <div class="task-card animate-card-in ${showPriorityBar ? 'has-priority' : ''}"
@@ -21,7 +21,7 @@ const TaskCard = {
            draggable="${options.draggable !== false ? 'true' : 'false'}"
            ondragstart="KanbanView.handleDragStart(event, '${task.id}')"
            ondragend="KanbanView.handleDragEnd(event)">
-        ${showPriorityBar ? `<div class="task-card-priority-bar" style="background: ${priority.color}"></div>` : ''}
+        ${showPriorityBar ? `<div class="task-card-priority-bar" style="background: ${urgency.color}"></div>` : ''}
         <div class="task-card-header">
           <div class="task-card-checkbox ${isCompleted ? 'checked' : ''}" 
                onclick="event.stopPropagation(); TaskCard.toggleComplete('${task.id}')">
@@ -50,7 +50,16 @@ const TaskCard = {
               ${subtaskProgress.completed}/${subtaskProgress.total}
             </span>
           ` : ''}
-          <span class="priority-badge priority-${task.priority}">${priority.icon} ${priority.label}</span>
+          <span class="priority-badge priority-${task.importance}">${importance.icon} 重:${importance.label}</span>
+          <span class="priority-badge priority-${task.urgency}">${urgency.icon} 緊:${urgency.label}</span>
+          ${task.leadTime ? `
+            <span class="task-card-date" style="margin-left:4px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              ${task.leadTime}日
+            </span>
+          ` : ''}
           ${task.collaborator ? `
             <span class="tag" style="background: rgba(148, 163, 184, 0.1); color: var(--text-secondary); border: 1px solid var(--border-subtle);">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-right:2px;">
@@ -79,7 +88,8 @@ const TaskCard = {
   },
 
   renderTableRow(task) {
-    const priority = getPriorityInfo(task.priority);
+    const importance = getImportanceInfo(task.importance);
+    const urgency = getUrgencyInfo(task.urgency);
     const statusInfo = getStatusInfo(task.status);
     const isCompleted = task.status === STATUSES.DONE.key;
     const overdue = isOverdue(task);
@@ -106,7 +116,13 @@ const TaskCard = {
           </span>
         </div>
         <div class="task-table-cell">
-          <span class="priority-badge priority-${task.priority}">${priority.icon} ${priority.label}</span>
+          <span class="priority-badge priority-${task.importance}">${importance.icon} ${importance.label}</span>
+        </div>
+        <div class="task-table-cell">
+          <span class="priority-badge priority-${task.urgency}">${urgency.icon} ${urgency.label}</span>
+        </div>
+        <div class="task-table-cell" style="color: var(--text-secondary); font-size: 13px;">
+          ${task.leadTime ? task.leadTime + '日' : '-'}
         </div>
         <div class="task-table-cell">
           ${task.collaborator ? `<span style="font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:4px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${task.collaborator}</span>` : '<span style="color:var(--text-muted);font-size:12px;">-</span>'}

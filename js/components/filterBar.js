@@ -67,22 +67,43 @@ const FilterBar = {
           ` : ''}
 
           <div class="dropdown">
-            <button class="filter-chip ${currentFilters.priority && currentFilters.priority !== 'all' ? 'active' : ''}"
+            <button class="filter-chip ${currentFilters.importance && currentFilters.importance !== 'all' ? 'active' : ''}"
                     onclick="FilterBar.toggleDropdown(this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
               </svg>
-              優先度
+              重要度
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;">
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </button>
             <div class="dropdown-menu">
-              <div class="dropdown-item ${!currentFilters.priority || currentFilters.priority === 'all' ? 'active' : ''}"
-                   onclick="FilterBar.setFilter('priority', 'all')">すべて</div>
-              ${Object.values(PRIORITIES).map(p => `
-                <div class="dropdown-item ${currentFilters.priority === p.key ? 'active' : ''}"
-                     onclick="FilterBar.setFilter('priority', '${p.key}')">${p.icon} ${p.label}</div>
+              <div class="dropdown-item ${!currentFilters.importance || currentFilters.importance === 'all' ? 'active' : ''}"
+                   onclick="FilterBar.setFilter('importance', 'all')">すべて</div>
+              ${Object.values(IMPORTANCE_LEVELS).map(i => `
+                <div class="dropdown-item ${currentFilters.importance === i.key ? 'active' : ''}"
+                     onclick="FilterBar.setFilter('importance', '${i.key}')">${i.icon} ${i.label}</div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="dropdown">
+            <button class="filter-chip ${currentFilters.urgency && currentFilters.urgency !== 'all' ? 'active' : ''}"
+                    onclick="FilterBar.toggleDropdown(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+              緊急性
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item ${!currentFilters.urgency || currentFilters.urgency === 'all' ? 'active' : ''}"
+                   onclick="FilterBar.setFilter('urgency', 'all')">すべて</div>
+              ${Object.values(URGENCY_LEVELS).map(u => `
+                <div class="dropdown-item ${currentFilters.urgency === u.key ? 'active' : ''}"
+                     onclick="FilterBar.setFilter('urgency', '${u.key}')">${u.icon} ${u.label}</div>
               `).join('')}
             </div>
           </div>
@@ -125,11 +146,14 @@ const FilterBar = {
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
             </button>
-            <div class="dropdown-menu" style="right: 0; left: auto;">
+            <div class="dropdown-menu" style="right: 0; left: auto; min-width: 160px;">
+              <div class="dropdown-item" onclick="FilterBar.setSort('manual', 'asc')">手動ソート (ソートなし)</div>
               <div class="dropdown-item" onclick="FilterBar.setSort('createdAt', 'desc')">作成日（新しい順）</div>
               <div class="dropdown-item" onclick="FilterBar.setSort('createdAt', 'asc')">作成日（古い順）</div>
               <div class="dropdown-item" onclick="FilterBar.setSort('dueDate', 'asc')">期限（近い順）</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('priority', 'asc')">優先度（高い順）</div>
+              <div class="dropdown-item" onclick="FilterBar.setSort('importance', 'asc')">重要度（高い順）</div>
+              <div class="dropdown-item" onclick="FilterBar.setSort('urgency', 'asc')">緊急性（高い順）</div>
+              <div class="dropdown-item" onclick="FilterBar.setSort('leadTime', 'desc')">リードタイム（長い順）</div>
               <div class="dropdown-item" onclick="FilterBar.setSort('title', 'asc')">タイトル（A→Z）</div>
             </div>
           </div>

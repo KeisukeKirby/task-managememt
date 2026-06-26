@@ -3,11 +3,16 @@
 // タスク管理ダッシュボード
 // ===================================
 
-const PRIORITIES = {
-  URGENT: { key: 'urgent', label: '緊急', color: '#f43f5e', icon: '🔴', order: 0 },
-  HIGH:   { key: 'high',   label: '高',   color: '#f59e0b', icon: '🟡', order: 1 },
-  MEDIUM: { key: 'medium', label: '中',   color: '#6366f1', icon: '🔵', order: 2 },
-  LOW:    { key: 'low',    label: '低',   color: '#94a3b8', icon: '⚪', order: 3 },
+const IMPORTANCE_LEVELS = {
+  HIGH:   { key: 'high',   label: '高', color: '#f43f5e', icon: '🔴', order: 0 },
+  MEDIUM: { key: 'medium', label: '中', color: '#f59e0b', icon: '🟡', order: 1 },
+  LOW:    { key: 'low',    label: '低', color: '#6366f1', icon: '🔵', order: 2 },
+};
+
+const URGENCY_LEVELS = {
+  HIGH:   { key: 'high',   label: '高', color: '#f43f5e', icon: '🔥', order: 0 },
+  MEDIUM: { key: 'medium', label: '中', color: '#f59e0b', icon: '⚡', order: 1 },
+  LOW:    { key: 'low',    label: '低', color: '#6366f1', icon: '⏳', order: 2 },
 };
 
 const COLLABORATORS = [
@@ -45,7 +50,9 @@ function createTask({
   title = '',
   description = '',
   status = STATUSES.TODO.key,
-  priority = PRIORITIES.MEDIUM.key,
+  importance = IMPORTANCE_LEVELS.MEDIUM.key,
+  urgency = URGENCY_LEVELS.MEDIUM.key,
+  leadTime = 0,
   projectId = null,
   tags = [],
   startDate = null,
@@ -59,7 +66,9 @@ function createTask({
     title,
     description,
     status,
-    priority,
+    importance,
+    urgency,
+    leadTime,
     projectId,
     tags,
     startDate,
@@ -109,8 +118,12 @@ function createTag({
 
 // ── Helper Functions ──
 
-function getPriorityInfo(priorityKey) {
-  return Object.values(PRIORITIES).find(p => p.key === priorityKey) || PRIORITIES.MEDIUM;
+function getImportanceInfo(key) {
+  return Object.values(IMPORTANCE_LEVELS).find(i => i.key === key) || IMPORTANCE_LEVELS.MEDIUM;
+}
+
+function getUrgencyInfo(key) {
+  return Object.values(URGENCY_LEVELS).find(u => u.key === key) || URGENCY_LEVELS.MEDIUM;
 }
 
 function getStatusInfo(statusKey) {

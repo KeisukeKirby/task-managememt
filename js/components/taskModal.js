@@ -63,10 +63,24 @@ const TaskModal = {
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">優先度</label>
-            <select id="task-priority-input" class="form-select">
-              ${Object.values(PRIORITIES).map(p => `
-                <option value="${p.key}" ${task.priority === p.key ? 'selected' : ''}>${p.icon} ${p.label}</option>
+            <label class="form-label">リードタイム(日)</label>
+            <input type="number" id="task-lead-time-input" class="form-input" value="${task.leadTime || 0}" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">重要度</label>
+            <select id="task-importance-input" class="form-select">
+              ${Object.values(IMPORTANCE_LEVELS).map(i => `
+                <option value="${i.key}" ${task.importance === i.key ? 'selected' : ''}>${i.icon} ${i.label}</option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">緊急性</label>
+            <select id="task-urgency-input" class="form-select">
+              ${Object.values(URGENCY_LEVELS).map(u => `
+                <option value="${u.key}" ${task.urgency === u.key ? 'selected' : ''}>${u.icon} ${u.label}</option>
               `).join('')}
             </select>
           </div>
@@ -191,7 +205,9 @@ const TaskModal = {
         title,
         description: document.getElementById('task-desc-input')?.value.trim() || '',
         status: document.getElementById('task-status-input')?.value || 'todo',
-        priority: document.getElementById('task-priority-input')?.value || 'medium',
+        importance: document.getElementById('task-importance-input')?.value || 'medium',
+        urgency: document.getElementById('task-urgency-input')?.value || 'medium',
+        leadTime: parseInt(document.getElementById('task-lead-time-input')?.value || '0', 10),
         startDate: document.getElementById('task-start-input')?.value || null,
         dueDate: document.getElementById('task-due-input')?.value || null,
         projectId: document.getElementById('task-project-input')?.value || null,

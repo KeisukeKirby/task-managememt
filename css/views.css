@@ -149,7 +149,7 @@
 
 .task-table-header {
   display: grid;
-  grid-template-columns: 32px 40px 1fr 120px 100px 100px 120px 100px 48px;
+  grid-template-columns: 32px 40px 1fr 120px 80px 80px 80px 100px 120px 100px 48px;
   align-items: center;
   padding: var(--space-3) var(--space-4);
   background: var(--bg-surface-hover);
@@ -163,7 +163,7 @@
 
 .task-table-row {
   display: grid;
-  grid-template-columns: 32px 40px 1fr 120px 100px 100px 120px 100px 48px;
+  grid-template-columns: 32px 40px 1fr 120px 80px 80px 80px 100px 120px 100px 48px;
   align-items: center;
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--border-subtle);

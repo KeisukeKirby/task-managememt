@@ -32,7 +32,7 @@ class Store {
 
   _loadCache() {
     this._cache = {
-      tasks: this._read(STORAGE_KEYS.TASKS) || [],
+      tasks: (this._read(STORAGE_KEYS.TASKS) || []).map(t => this._migrateTask(t)),
       projects: this._read(STORAGE_KEYS.PROJECTS) || [],
       tags: this._read(STORAGE_KEYS.TAGS) || [],
       settings: this._read(STORAGE_KEYS.SETTINGS) || {
@@ -41,6 +41,25 @@ class Store {
         defaultView: 'dashboard',
       },
     };
+  }
+
+  _migrateTask(task) {
+    if (task.priority) {
+      if (task.priority === 'urgent') {
+        task.importance = 'high'; task.urgency = 'high';
+      } else if (task.priority === 'high') {
+        task.importance = 'high'; task.urgency = 'medium';
+      } else if (task.priority === 'medium') {
+        task.importance = 'medium'; task.urgency = 'medium';
+      } else {
+        task.importance = 'low'; task.urgency = 'low';
+      }
+      delete task.priority;
+    }
+    if (task.leadTime === undefined) {
+      task.leadTime = 0;
+    }
+    return task;
   }
 
   _read(key) {
@@ -167,7 +186,7 @@ class Store {
       if (!response.ok) throw new Error('Failed to fetch data');
       const data = await response.json();
 
-      if (data.tasks) this._cache.tasks = data.tasks;
+      if (data.tasks) this._cache.tasks = data.tasks.map(t => this._migrateTask(t));
       if (data.projects) this._cache.projects = data.projects;
       if (data.tags) this._cache.tags = data.tags;
 
@@ -383,8 +402,12 @@ class Store {
     return this._cache.tasks.filter(t => t.projectId === projectId);
   }
 
-  getTasksByPriority(priority) {
-    return this._cache.tasks.filter(t => t.priority === priority);
+  getTasksByImportance(importance) {
+    return this._cache.tasks.filter(t => t.importance === importance);
+  }
+
+  getTasksByUrgency(urgency) {
+    return this._cache.tasks.filter(t => t.urgency === urgency);
   }
 
   getOverdueTasks() {
@@ -421,8 +444,12 @@ class Store {
       tasks = tasks.filter(t => t.status === filters.status);
     }
 
-    if (filters.priority && filters.priority !== 'all') {
-      tasks = tasks.filter(t => t.priority === filters.priority);
+    if (filters.importance && filters.importance !== 'all') {
+      tasks = tasks.filter(t => t.importance === filters.importance);
+    }
+    
+    if (filters.urgency && filters.urgency !== 'all') {
+      tasks = tasks.filter(t => t.urgency === filters.urgency);
     }
 
     if (filters.projectId && filters.projectId !== 'all') {
@@ -460,9 +487,17 @@ class Store {
       let valA, valB;
 
       switch (sortBy) {
-        case 'priority':
-          valA = getPriorityInfo(a.priority).order;
-          valB = getPriorityInfo(b.priority).order;
+        case 'importance':
+          valA = getImportanceInfo(a.importance).order;
+          valB = getImportanceInfo(b.importance).order;
+          break;
+        case 'urgency':
+          valA = getUrgencyInfo(a.urgency).order;
+          valB = getUrgencyInfo(b.urgency).order;
+          break;
+        case 'leadTime':
+          valA = Number(a.leadTime) || 0;
+          valB = Number(b.leadTime) || 0;
           break;
         case 'dueDate':
           valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
@@ -487,24 +522,6 @@ class Store {
     });
 
     return tasks;
-  }
-
-  reorderTasks(draggedId, targetId) {
-    if (!this._guardEdit()) return;
-    const draggedIndex = this._cache.tasks.findIndex(t => t.id === draggedId);
-    const targetIndex = this._cache.tasks.findIndex(t => t.id === targetId);
-    if (draggedIndex === -1 || targetIndex === -1) return;
-    
-    const task = this._cache.tasks[draggedIndex];
-    
-    // Also, if dragging into another group, update the projectId
-    const targetTask = this._cache.tasks[targetIndex];
-    task.projectId = targetTask.projectId;
-
-    this._cache.tasks.splice(draggedIndex, 1);
-    this._cache.tasks.splice(targetIndex, 0, task);
-    
-    this._saveTasks();
   }
 
   getStats() {
@@ -710,7 +727,7 @@ class Store {
       title: 'ランディングページのデザイン修正',
       description: 'ヒーローセクションのレイアウトを更新し、新しいブランドカラーを適用する。CTAボタンの配置も見直す。',
       status: 'in-progress',
-      priority: 'high',
+      importance: 'high', urgency: 'high', leadTime: 3,
       projectId: projectDesign.id,
       tags: [tagDesign.id],
       startDate: fmt(today),
@@ -727,7 +744,7 @@ class Store {
       title: 'APIエンドポイントの認証機能実装',
       description: 'JWT認証をAPIに実装する。リフレッシュトークンの仕組みも含める。',
       status: 'todo',
-      priority: 'urgent',
+      importance: 'high', urgency: 'high', leadTime: 5,
       projectId: projectApp.id,
       tags: [tagDev.id, tagFeature.id],
       startDate: fmt(yesterday),
@@ -744,7 +761,7 @@ class Store {
       title: 'Q3マーケティング計画書作成',
       description: '第3四半期のマーケティング戦略と予算案を作成。SNS広告とコンテンツマーケティングを中心に。',
       status: 'review',
-      priority: 'high',
+      importance: 'high', urgency: 'medium', leadTime: 7,
       projectId: projectMarketing.id,
       tags: [tagDoc.id],
       startDate: fmt(tomorrow),
@@ -754,7 +771,7 @@ class Store {
     this.addTask({
       title: 'ユーザーダッシュボードのパフォーマンス改善',
       description: '読み込み速度を50%改善する。バンドルサイズの削減とレイジーロードの導入。',
-      status: 'in-progress', priority: 'medium', projectId: projectDesign.id,
+      status: 'in-progress', importance: 'medium', urgency: 'medium', leadTime: 4, projectId: projectDesign.id,
       tags: [tagDev.id], dueDate: fmt(nextWeek),
       subtasks: [
         { title: 'パフォーマンス計測', completed: true },
@@ -763,13 +780,13 @@ class Store {
       ],
     });
 
-    this.addTask({ title: '週次チームミーティング準備', description: '先週の振り返りと今週の目標設定のスライド準備。', status: 'todo', priority: 'medium', tags: [tagMeeting.id], dueDate: fmt(tomorrow) });
-    this.addTask({ title: 'モバイルナビゲーションのバグ修正', description: 'ハンバーガーメニューが特定のiOSバージョンで動作しない問題の修正。', status: 'todo', priority: 'urgent', projectId: projectApp.id, tags: [tagBug.id], dueDate: fmt(yesterday) });
+    this.addTask({ title: '週次チームミーティング準備', description: '先週の振り返りと今週の目標設定のスライド準備。', status: 'todo', importance: 'medium', urgency: 'medium', tags: [tagMeeting.id], dueDate: fmt(tomorrow) });
+    this.addTask({ title: 'モバイルナビゲーションのバグ修正', description: 'ハンバーガーメニューが特定のiOSバージョンで動作しない問題の修正。', status: 'todo', importance: 'high', urgency: 'high', projectId: projectApp.id, tags: [tagBug.id], dueDate: fmt(yesterday) });
 
     this.addTask({
       title: 'SNS投稿コンテンツ作成（6月分）',
       description: 'Instagram・Twitter用の投稿画像と文章を20件分作成。',
-      status: 'in-progress', priority: 'medium', projectId: projectMarketing.id,
+      status: 'in-progress', importance: 'medium', urgency: 'low', leadTime: 2, projectId: projectMarketing.id,
       tags: [tagDesign.id], dueDate: fmt(nextWeek),
       subtasks: [
         { title: '投稿カレンダー作成', completed: true },
@@ -779,11 +796,11 @@ class Store {
       ],
     });
 
-    this.addTask({ title: 'データベーススキーマの最適化', description: 'クエリパフォーマンスの改善のためインデックスの見直しとテーブル構造の最適化。', status: 'done', priority: 'high', projectId: projectApp.id, tags: [tagDev.id], dueDate: fmt(lastWeek) });
-    this.addTask({ title: 'ユーザーインタビュー（5名分）', description: '新機能のフィードバックを得るためのユーザーインタビューを実施。', status: 'done', priority: 'medium', projectId: projectDesign.id, tags: [tagMeeting.id], dueDate: fmt(lastWeek) });
-    this.addTask({ title: 'CI/CDパイプライン構築', description: 'GitHub Actionsを使用した自動テスト・デプロイパイプラインの構築。', status: 'todo', priority: 'low', projectId: projectApp.id, tags: [tagDev.id], dueDate: fmt(nextWeek) });
-    this.addTask({ title: 'コンペティター分析レポート', description: '主要競合3社のプロダクト分析と市場ポジショニングのレポート作成。', status: 'todo', priority: 'low', projectId: projectMarketing.id, tags: [tagDoc.id], dueDate: null });
-    this.addTask({ title: 'アクセシビリティ監査', description: 'WCAG 2.1 AAレベルへの準拠状況を確認し、改善点をリストアップ。', status: 'todo', priority: 'medium', projectId: projectDesign.id, tags: [tagDev.id, tagDoc.id], dueDate: null });
+    this.addTask({ title: 'データベーススキーマの最適化', description: 'クエリパフォーマンスの改善のためインデックスの見直しとテーブル構造の最適化。', status: 'done', importance: 'high', urgency: 'medium', projectId: projectApp.id, tags: [tagDev.id], dueDate: fmt(lastWeek) });
+    this.addTask({ title: 'ユーザーインタビュー（5名分）', description: '新機能のフィードバックを得るためのユーザーインタビューを実施。', status: 'done', importance: 'medium', urgency: 'medium', projectId: projectDesign.id, tags: [tagMeeting.id], dueDate: fmt(lastWeek) });
+    this.addTask({ title: 'CI/CDパイプライン構築', description: 'GitHub Actionsを使用した自動テスト・デプロイパイプラインの構築。', status: 'todo', importance: 'low', urgency: 'low', projectId: projectApp.id, tags: [tagDev.id], dueDate: fmt(nextWeek) });
+    this.addTask({ title: 'コンペティター分析レポート', description: '主要競合3社のプロダクト分析と市場ポジショニングのレポート作成。', status: 'todo', importance: 'low', urgency: 'low', projectId: projectMarketing.id, tags: [tagDoc.id], dueDate: null });
+    this.addTask({ title: 'アクセシビリティ監査', description: 'WCAG 2.1 AAレベルへの準拠状況を確認し、改善点をリストアップ。', status: 'todo', importance: 'medium', urgency: 'low', projectId: projectDesign.id, tags: [tagDev.id, tagDoc.id], dueDate: null });
 
     localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'true');
     this._isViewerMode = wasViewer;

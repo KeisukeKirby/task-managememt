@@ -77,7 +77,9 @@ const ListView = {
             <div></div>
             <div>タイトル</div>
             <div>ステータス</div>
-            <div>優先度</div>
+            <div>重要度</div>
+            <div>緊急性</div>
+            <div>L/T(日)</div>
             <div>コラボレーター</div>
             <div>期限</div>
             <div>プロジェクト</div>
@@ -127,8 +129,9 @@ const ListView = {
     const rows = document.querySelectorAll('.task-table-row');
     rows.forEach(row => {
       row.addEventListener('dragstart', (e) => {
-        if (!store.isAdmin) {
+        if (!store.isAdmin || (App && App.filters && App.filters.sortBy !== 'manual')) {
           e.preventDefault();
+          if (store.isAdmin) Toast.show('手動での並び替えは「ソートなし」の場合のみ可能です', 'info');
           return;
         }
         draggedTaskId = row.dataset.taskId;
