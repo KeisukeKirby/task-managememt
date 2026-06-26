@@ -12,6 +12,12 @@ const TaskModal = {
   },
 
   open(task = null) {
+    if (!task) {
+      task = {};
+      if (typeof App !== 'undefined' && App.filters && App.filters.projectId && App.filters.projectId !== 'all' && App.filters.projectId !== 'none') {
+        task.projectId = App.filters.projectId;
+      }
+    }
     this.currentTask = task;
     this.render();
     this.overlay.classList.add('active');

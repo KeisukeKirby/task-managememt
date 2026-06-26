@@ -23,8 +23,15 @@ const Sidebar = {
 
     // Navigation items
     this.el.querySelectorAll('.sidebar-item[data-view]').forEach(item => {
-      item.addEventListener('click', () => {
+      item.addEventListener('click', (e) => {
+        if (e.defaultPrevented) return;
         const view = item.dataset.view;
+        if (view === 'project') return; // Handled below
+        
+        if (view === 'list') {
+          // Clear project filter when clicking 'Task List' in main nav
+          App.filters = { projectId: 'all' };
+        }
         App.navigateTo(view);
       });
     });
@@ -74,7 +81,8 @@ const Sidebar = {
       item.addEventListener('click', (e) => {
         if (e.defaultPrevented) return;
         const projectId = item.dataset.projectId;
-        App.navigateTo('list', { projectId });
+        App.filters = { projectId };
+        App.navigateTo('list');
       });
 
       // Drag and Drop events
