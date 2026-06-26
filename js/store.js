@@ -56,9 +56,27 @@ class Store {
     if (this._isViewerMode) return; // 閲覧者モードでは書き込み禁止
     try {
       localStorage.setItem(key, JSON.stringify(data));
+      this._syncToCloud();
     } catch (e) {
       console.error('Storage write error:', e);
     }
+  }
+
+  async _syncToCloud() {
+    try {
+       const isLocal = window.location.protocol === 'file:';
+       const apiUrl = isLocal ? 'https://task-managememt.vercel.app/api/tasks' : '/api/tasks';
+       await fetch(apiUrl, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+            tasks: this._cache.tasks,
+            projects: this._cache.projects,
+            tags: this._cache.tags,
+            settings: this._cache.settings
+         })
+       });
+    } catch(e) { console.error('Cloud sync error:', e); }
   }
 
   _saveTasks() {
@@ -107,8 +125,13 @@ class Store {
       this._isViewerMode = false;
       sessionStorage.setItem(STORAGE_KEYS.ADMIN_SESSION, 'true');
 
-      // 管理者モード: localStorageにデータがなければ data.json から初期化
-      if (!this._read(STORAGE_KEYS.TASKS)) {
+      // 管理者モード: まずクラウドから最新をロードする
+      const loaded = await this.loadSharedData();
+      if (loaded && this._cache.tasks && this._cache.tasks.length > 0) {
+          this._write(STORAGE_KEYS.TASKS, this._cache.tasks);
+          this._write(STORAGE_KEYS.PROJECTS, this._cache.projects);
+          this._write(STORAGE_KEYS.TAGS, this._cache.tags);
+      } else if (!this._read(STORAGE_KEYS.TASKS)) {
         this.initSampleData();
       }
       this._loadCache();
@@ -138,8 +161,10 @@ class Store {
 
   async loadSharedData() {
     try {
-      const response = await fetch('data.json?t=' + Date.now());
-      if (!response.ok) throw new Error('Failed to fetch data.json');
+      const isLocal = window.location.protocol === 'file:';
+      const apiUrl = isLocal ? 'https://task-managememt.vercel.app/api/tasks?t=' : '/api/tasks?t=';
+      const response = await fetch(apiUrl + Date.now());
+      if (!response.ok) throw new Error('Failed to fetch data');
       const data = await response.json();
 
       if (data.tasks) this._cache.tasks = data.tasks;
@@ -161,6 +186,14 @@ class Store {
     if (this.checkSession()) {
       this._isAdmin = true;
       this._isViewerMode = false;
+      
+      const loaded = await this.loadSharedData();
+      if (loaded && this._cache.tasks && this._cache.tasks.length > 0) {
+          this._write(STORAGE_KEYS.TASKS, this._cache.tasks);
+          this._write(STORAGE_KEYS.PROJECTS, this._cache.projects);
+          this._write(STORAGE_KEYS.TAGS, this._cache.tags);
+      }
+      
       this._loadCache();
       if (!this._read(STORAGE_KEYS.TASKS)) {
         this.initSampleData();
