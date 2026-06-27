@@ -298,6 +298,9 @@ const App = {
 
   showView(view) {
     this.currentView = view;
+    
+    // Set task type filter based on view
+    this.filters.taskType = (view === 'progress') ? 'team' : 'personal';
 
     const titles = {
       dashboard: 'ダッシュボード',

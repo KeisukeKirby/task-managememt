@@ -17,6 +17,7 @@ const TaskModal = {
       if (typeof App !== 'undefined' && App.filters && App.filters.projectId && App.filters.projectId !== 'all' && App.filters.projectId !== 'none') {
         task.projectId = App.filters.projectId;
       }
+      task.taskType = (typeof App !== 'undefined' && App.filters && App.filters.taskType) ? App.filters.taskType : 'personal';
     }
     this.currentTask = task;
     this.render();
@@ -103,12 +104,10 @@ const TaskModal = {
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">プロジェクト</label>
-            <select id="task-project-input" class="form-select">
-              <option value="">なし</option>
-              ${projects.map(p => `
-                <option value="${p.id}" ${task.projectId === p.id ? 'selected' : ''}>${p.icon} ${p.name}</option>
-              `).join('')}
+            <label class="form-label">タスク区分</label>
+            <select id="task-type-input" class="form-select">
+              <option value="personal" ${task.taskType !== 'team' ? 'selected' : ''}>自分のタスク</option>
+              <option value="team" ${task.taskType === 'team' ? 'selected' : ''}>チームタスク（全体進捗管理用）</option>
             </select>
           </div>
           <div class="form-group">
@@ -120,6 +119,18 @@ const TaskModal = {
               `).join('')}
             </select>
           </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">プロジェクト</label>
+            <select id="task-project-input" class="form-select">
+              <option value="">なし</option>
+              ${projects.map(p => `
+                <option value="${p.id}" ${task.projectId === p.id ? 'selected' : ''}>${p.icon} ${p.name}</option>
+              `).join('')}
+            </select>
+          </div>
+          <div class="form-group"></div>
         </div>
         <div class="form-group">
           <label class="form-label">タグ</label>
@@ -218,6 +229,7 @@ const TaskModal = {
         dueDate: document.getElementById('task-due-input')?.value || null,
         projectId: document.getElementById('task-project-input')?.value || null,
         collaborator: document.getElementById('task-collaborator-input')?.value || null,
+        taskType: document.getElementById('task-type-input')?.value || 'personal',
         tags: this._getSelectedTags(),
       };
 

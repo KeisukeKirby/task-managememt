@@ -59,6 +59,9 @@ class Store {
     if (task.leadTime === undefined) {
       task.leadTime = 0;
     }
+    if (!task.taskType) {
+      task.taskType = 'personal';
+    }
     return task;
   }
 
@@ -432,6 +435,12 @@ class Store {
   getFilteredTasks(filters = {}) {
     let tasks = this.getTasks();
 
+    // TaskType filter (default to 'personal' if not specified)
+    const taskType = filters.taskType || 'personal';
+    if (taskType !== 'all') {
+      tasks = tasks.filter(t => t.taskType === taskType);
+    }
+
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       tasks = tasks.filter(t =>
@@ -525,13 +534,13 @@ class Store {
   }
 
   getStats() {
-    const tasks = this.getTasks();
+    const tasks = this.getTasks().filter(t => t.taskType === 'personal');
     const total = tasks.length;
     const completed = tasks.filter(t => t.status === STATUSES.DONE.key).length;
     const inProgress = tasks.filter(t => t.status === STATUSES.IN_PROGRESS.key).length;
-    const overdue = this.getOverdueTasks().length;
-    const todayCount = this.getTodayTasks().length;
-    const dueSoonCount = this.getUpcomingTasks().length;
+    const overdue = tasks.filter(t => isOverdue(t)).length;
+    const todayCount = tasks.filter(t => isDueToday(t) && t.status !== STATUSES.DONE.key).length;
+    const dueSoonCount = tasks.filter(t => isDueSoon(t) && t.status !== STATUSES.DONE.key).length;
 
     return {
       total,

@@ -16,7 +16,7 @@ const URGENCY_LEVELS = {
 };
 
 const COLLABORATORS = [
-  'Shimada', 'Bew', 'Aod', 'Ying', 'Poo', 'Nut', 'Nee', 'Pong'
+  'Shimada', 'Bew', 'Aod', 'Ying', 'Poo', 'Nut', 'Nee', 'Pong', 'Beer'
 ];
 
 const STATUSES = {
@@ -60,6 +60,7 @@ function createTask({
   subtasks = [],
   parentId = null,
   collaborator = null,
+  taskType = 'personal',
 } = {}) {
   return {
     id: generateId(),
@@ -74,6 +75,7 @@ function createTask({
     startDate,
     dueDate,
     collaborator,
+    taskType,
     subtasks: subtasks.map(st => ({
       id: generateId(),
       title: typeof st === 'string' ? st : st.title,
