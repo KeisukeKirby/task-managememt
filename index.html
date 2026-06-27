@@ -66,13 +66,13 @@
             <span class="sidebar-item-text">タスク一覧</span>
             <span class="sidebar-item-badge" id="badge-today" style="display:none">0</span>
           </div>
-          <div class="sidebar-item" data-view="kanban">
+          <div class="sidebar-item" data-view="progress">
             <span class="sidebar-item-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="10" rx="1"/>
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
               </svg>
             </span>
-            <span class="sidebar-item-text">カンバンボード</span>
+            <span class="sidebar-item-text">全体進捗管理</span>
           </div>
           <div class="sidebar-item" data-view="calendar">
             <span class="sidebar-item-icon">
@@ -246,7 +246,7 @@
   <script src="js/components/filterBar.js?v=4"></script>
   <script src="js/views/dashboard.js?v=4"></script>
   <script src="js/views/listView.js?v=4"></script>
-  <script src="js/views/kanbanView.js?v=4"></script>
+  <script src="js/views/progressView.js?v=4"></script>
   <script src="js/views/calendarView.js?v=4"></script>
   <script src="js/views/ganttView.js?v=4"></script>
   <script src="js/app.js?v=4"></script>

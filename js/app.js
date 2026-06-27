@@ -278,7 +278,7 @@ const App = {
     const hash = window.location.hash.slice(1) || 'dashboard';
     const [view, ...params] = hash.split('/');
 
-    const validViews = ['dashboard', 'list', 'kanban', 'calendar', 'gantt'];
+    const validViews = ['dashboard', 'list', 'progress', 'calendar', 'gantt'];
     if (validViews.includes(view)) {
       this.showView(view);
     } else {
@@ -302,7 +302,7 @@ const App = {
     const titles = {
       dashboard: 'ダッシュボード',
       list: 'タスク一覧',
-      kanban: 'カンバンボード',
+      progress: '全体進捗管理',
       calendar: 'カレンダー',
       gantt: 'ガントチャート',
     };
@@ -317,8 +317,8 @@ const App = {
       case 'list':
         ListView.render();
         break;
-      case 'kanban':
-        KanbanView.render();
+      case 'progress':
+        ProgressView.render();
         break;
       case 'calendar':
         CalendarView.render();
@@ -413,7 +413,7 @@ const App = {
         App.navigateTo('list');
         break;
       case '3':
-        App.navigateTo('kanban');
+        App.navigateTo('progress');
         break;
       case '4':
         App.navigateTo('calendar');
