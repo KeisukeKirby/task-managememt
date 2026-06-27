@@ -32,7 +32,7 @@ const Header = {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           const query = this.searchInput.value.trim();
-          if (App.currentView === 'list' || App.currentView === 'kanban') {
+          if (App.currentView === 'list' || App.currentView === 'progress') {
             App.filters.search = query;
             App.refreshCurrentView();
           } else if (query) {

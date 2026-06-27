@@ -23,7 +23,7 @@ const FilterBar = {
               </svg>
               リスト
             </button>
-            <button class="view-toggle-btn ${App.currentView === 'kanban' ? 'active' : ''}" onclick="App.navigateTo('kanban')" data-tooltip="カンバン">
+            <button class="view-toggle-btn ${App.currentView === 'progress' ? 'active' : ''}" onclick="App.navigateTo('progress')" data-tooltip="全体進捗管理">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="10" rx="1"/>
               </svg>

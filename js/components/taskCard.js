@@ -18,9 +18,7 @@ const TaskCard = {
       <div class="task-card animate-card-in ${showPriorityBar ? 'has-priority' : ''}"
            data-task-id="${task.id}" 
            onclick="TaskModal.open(store.getTask('${task.id}'))"
-           draggable="${options.draggable !== false ? 'true' : 'false'}"
-           ondragstart="KanbanView.handleDragStart(event, '${task.id}')"
-           ondragend="KanbanView.handleDragEnd(event)">
+           draggable="${options.draggable !== false ? 'true' : 'false'}">
         ${showPriorityBar ? `<div class="task-card-priority-bar" style="background: ${urgency.color}"></div>` : ''}
         <div class="task-card-header">
           <div class="task-card-checkbox ${isCompleted ? 'checked' : ''}" 
