@@ -35,7 +35,7 @@ const TaskModal = {
   },
 
   render() {
-    const isEdit = !!this.currentTask;
+    const isEdit = !!(this.currentTask && this.currentTask.id);
     const task = this.currentTask || {};
     const projects = store.getProjects();
     const tags = store.getTags();
@@ -233,7 +233,7 @@ const TaskModal = {
         tags: this._getSelectedTags(),
       };
 
-      if (this.currentTask) {
+      if (this.currentTask && this.currentTask.id) {
         store.updateTask(this.currentTask.id, taskData);
         Toast.show('タスクを更新しました', 'success');
       } else {
