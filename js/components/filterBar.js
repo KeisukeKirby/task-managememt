@@ -136,27 +136,6 @@ const FilterBar = {
           </div>
           ` : ''}
 
-          <div class="dropdown">
-            <button class="filter-chip" onclick="FilterBar.toggleDropdown(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;">
-                <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
-              </svg>
-              並び替え
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </button>
-            <div class="dropdown-menu" style="right: 0; left: auto; min-width: 160px;">
-              <div class="dropdown-item" onclick="FilterBar.setSort('manual', 'asc')">手動ソート (ソートなし)</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('createdAt', 'desc')">作成日（新しい順）</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('createdAt', 'asc')">作成日（古い順）</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('dueDate', 'asc')">期限（近い順）</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('importance', 'asc')">重要度（高い順）</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('urgency', 'asc')">緊急性（高い順）</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('leadTime', 'desc')">リードタイム（長い順）</div>
-              <div class="dropdown-item" onclick="FilterBar.setSort('title', 'asc')">タイトル（A→Z）</div>
-            </div>
-          </div>
         </div>
       </div>
     `;

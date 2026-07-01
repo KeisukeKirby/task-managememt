@@ -483,54 +483,45 @@ class Store {
       tasks = tasks.filter(t => isDueSoon(t) && t.status !== STATUSES.DONE.key);
     }
 
-    // Sort
-    const sortBy = filters.sortBy || 'manual';
-    const sortDir = filters.sortDir || 'desc';
+    // No on-the-fly sorting. Drag-and-drop order (manual order) is always preserved.
+    return tasks;
+  }
 
-    if (sortBy === 'manual') {
-       if (sortDir === 'asc') tasks.reverse();
-       return tasks;
-    }
+  sortTasksBy(criteria) {
+    if (!this._guardEdit()) return;
 
-    tasks.sort((a, b) => {
+    this._cache.tasks.sort((a, b) => {
       let valA, valB;
-
-      switch (sortBy) {
-        case 'importance':
-          valA = getImportanceInfo(a.importance).order;
-          valB = getImportanceInfo(b.importance).order;
-          break;
-        case 'urgency':
-          valA = getUrgencyInfo(a.urgency).order;
-          valB = getUrgencyInfo(b.urgency).order;
-          break;
-        case 'leadTime':
-          valA = Number(a.leadTime) || 0;
-          valB = Number(b.leadTime) || 0;
-          break;
+      switch (criteria) {
         case 'dueDate':
-          valA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-          valB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-          break;
+          valA = a.dueDate ? new Date(a.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+          valB = b.dueDate ? new Date(b.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+          return valA - valB;
+        case 'importance':
+          const impOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+          return (impOrder[b.importance] || 0) - (impOrder[a.importance] || 0);
+        case 'urgency':
+          const urgOrder = { 'high': 3, 'medium': 2, 'low': 1 };
+          return (urgOrder[b.urgency] || 0) - (urgOrder[a.urgency] || 0);
+        case 'createdAt':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'title':
-          valA = a.title.toLowerCase();
-          valB = b.title.toLowerCase();
-          break;
+          return a.title.localeCompare(b.title);
         case 'status':
-          valA = getStatusInfo(a.status).order;
-          valB = getStatusInfo(b.status).order;
-          break;
+          const statusOrder = { 'todo': 1, 'in-progress': 2, 'review': 3, 'done': 4 };
+          return (statusOrder[a.status] || 0) - (statusOrder[b.status] || 0);
+        case 'leadTime':
+          return parseInt(b.leadTime || 0) - parseInt(a.leadTime || 0);
+        case 'collaborator':
+          return (a.collaborator || '').localeCompare(b.collaborator || '');
+        case 'project':
+          return (a.projectId || '').localeCompare(b.projectId || '');
         default:
-          valA = new Date(a.createdAt).getTime();
-          valB = new Date(b.createdAt).getTime();
+          return 0;
       }
-
-      if (valA < valB) return sortDir === 'asc' ? -1 : 1;
-      if (valA > valB) return sortDir === 'asc' ? 1 : -1;
-      return 0;
     });
 
-    return tasks;
+    this._saveTasks();
   }
 
   getStats() {

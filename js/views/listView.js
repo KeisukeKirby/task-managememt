@@ -49,14 +49,14 @@ const ListView = {
               <input type="checkbox" id="list-bulk-select-all" class="bulk-checkbox admin-only" onclick="ListView.toggleAll(event)">
             </div>
             <div></div>
-            <div>タイトル</div>
-            <div>ステータス</div>
-            <div>重要度</div>
-            <div>緊急性</div>
-            <div>L/T(日)</div>
-            <div>コラボレーター</div>
-            <div>期限</div>
-            <div>プロジェクト</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('title'); App.refreshCurrentView();">タイトル ⇅</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('status'); App.refreshCurrentView();">ステータス ⇅</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('importance'); App.refreshCurrentView();">重要度 ⇅</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('urgency'); App.refreshCurrentView();">緊急性 ⇅</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('leadTime'); App.refreshCurrentView();">L/T(日) ⇅</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('collaborator'); App.refreshCurrentView();">コラボレーター ⇅</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('dueDate'); App.refreshCurrentView();">期限 ⇅</div>
+            <div style="cursor: pointer;" title="クリックして並び替え" onclick="store.sortTasksBy('project'); App.refreshCurrentView();">プロジェクト ⇅</div>
             <div></div>
           </div>
           ${tasks.map(t => TaskCard.renderTableRow(t)).join('')}        </div>
@@ -93,9 +93,8 @@ const ListView = {
     const rows = document.querySelectorAll('.task-table-row');
     rows.forEach(row => {
       row.addEventListener('dragstart', (e) => {
-        if (!store.isAdmin || (App && App.filters && App.filters.sortBy !== 'manual')) {
+        if (!store.isAdmin) {
           e.preventDefault();
-          if (store.isAdmin) Toast.show('手動での並び替えは「ソートなし」の場合のみ可能です', 'info');
           return;
         }
         draggedTaskId = row.dataset.taskId;
