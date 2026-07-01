@@ -95,7 +95,13 @@ const TaskCard = {
 
     return `
       <div class="task-table-row" data-task-id="${task.id}" onclick="TaskModal.open(store.getTask('${task.id}'))" draggable="true">
-        <div class="task-table-cell" style="display:flex; align-items:center;">
+        <div class="task-table-cell" style="display:flex; align-items:center; gap: 8px;">
+          <div class="drag-handle admin-only" style="cursor: grab; color: var(--text-muted); display: flex; align-items: center;" title="ドラッグして並び替え">
+            <svg viewBox="0 0 24 24" fill="currentColor" style="width: 14px; height: 14px; opacity: 0.5;">
+              <circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/>
+              <circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/>
+            </svg>
+          </div>
           <input type="checkbox" class="bulk-checkbox admin-only" data-bulk-id="${task.id}" onclick="event.stopPropagation(); ListView.toggleTaskSelection('${task.id}')">
         </div>
         <div class="task-table-cell">

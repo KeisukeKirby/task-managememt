@@ -15,32 +15,6 @@ const ListView = {
 
     const tasks = store.getFilteredTasks(App.filters);
 
-    // Group tasks by project
-    const groupedTasks = {
-      unassigned: []
-    };
-    const projects = store.getProjects();
-    projects.forEach(p => groupedTasks[p.id] = []);
-
-    tasks.forEach(t => {
-      if (t.projectId && groupedTasks[t.projectId]) {
-        groupedTasks[t.projectId].push(t);
-      } else {
-        groupedTasks.unassigned.push(t);
-      }
-    });
-
-    // Remove empty groups (optional, but cleaner)
-    const activeGroups = [];
-    projects.forEach(p => {
-      if (groupedTasks[p.id].length > 0) {
-        activeGroups.push({ id: p.id, name: p.name, icon: p.icon, color: p.color, tasks: groupedTasks[p.id] });
-      }
-    });
-    if (groupedTasks.unassigned.length > 0) {
-      activeGroups.push({ id: null, name: '未分類', icon: '📁', color: '#94a3b8', tasks: groupedTasks.unassigned });
-    }
-
     mainContent.innerHTML = `
       <div class="view-container">
         <div class="list-view-header">
@@ -85,17 +59,7 @@ const ListView = {
             <div>プロジェクト</div>
             <div></div>
           </div>
-          
-          ${activeGroups.map(group => `
-            <div class="list-view-project-divider">
-              <span style="color: ${group.color}; margin-right: 4px;">${group.icon}</span>
-              ${group.name}
-              <span style="font-weight:normal; color:var(--text-tertiary); font-size:10px;">(${group.tasks.length})</span>
-            </div>
-            ${group.tasks.map(t => TaskCard.renderTableRow(t)).join('')}
-          `).join('')}
-
-        </div>
+          ${tasks.map(t => TaskCard.renderTableRow(t)).join('')}        </div>
         ` : `
         <div class="empty-state">
           <div class="empty-state-icon">
@@ -145,7 +109,7 @@ const ListView = {
 
       row.addEventListener('dragend', () => {
         row.style.opacity = '';
-        rows.forEach(r => r.classList.remove('drag-over-top', 'drag-over-bottom'));
+        rows.forEach(r => r.classList.remove('drag-over'));
         document.body.classList.remove('is-dragging');
       });
 
@@ -160,19 +124,11 @@ const ListView = {
         e.dataTransfer.dropEffect = 'move';
         if (draggedTaskId === row.dataset.taskId) return;
         
-        const rect = row.getBoundingClientRect();
-        const midY = rect.top + rect.height / 2;
-        
-        row.classList.remove('drag-over-top', 'drag-over-bottom');
-        if (e.clientY < midY) {
-          row.classList.add('drag-over-top');
-        } else {
-          row.classList.add('drag-over-bottom');
-        }
+        row.classList.add('drag-over');
       });
 
       row.addEventListener('dragleave', () => {
-        row.classList.remove('drag-over-top', 'drag-over-bottom');
+        row.classList.remove('drag-over');
       });
 
       row.addEventListener('drop', (e) => {
@@ -180,12 +136,11 @@ const ListView = {
         e.preventDefault();
         e.stopPropagation();
         
-        const isTop = row.classList.contains('drag-over-top');
-        row.classList.remove('drag-over-top', 'drag-over-bottom');
+        row.classList.remove('drag-over');
         
         const targetTaskId = row.dataset.taskId;
         if (draggedTaskId && draggedTaskId !== targetTaskId) {
-          store.reorderTasks(draggedTaskId, targetTaskId, isTop ? 'before' : 'after');
+          store.reorderTasks(draggedTaskId, targetTaskId, 'before');
         }
       });
     });
