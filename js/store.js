@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   TASKS: 'taskdash_tasks',
   PROJECTS: 'taskdash_projects',
   TAGS: 'taskdash_tags',
+  NOTES: 'taskdash_notes',
   SETTINGS: 'taskdash_settings',
   INITIALIZED: 'taskdash_initialized',
   ADMIN_SESSION: 'taskdash_admin_session',
@@ -35,6 +36,7 @@ class Store {
       tasks: (this._read(STORAGE_KEYS.TASKS) || []).map(t => this._migrateTask(t)),
       projects: this._read(STORAGE_KEYS.PROJECTS) || [],
       tags: this._read(STORAGE_KEYS.TAGS) || [],
+      notes: this._read(STORAGE_KEYS.NOTES) || '',
       settings: this._read(STORAGE_KEYS.SETTINGS) || {
         theme: 'system',
         sidebarCollapsed: false,
@@ -95,6 +97,7 @@ class Store {
             tasks: this._cache.tasks,
             projects: this._cache.projects,
             tags: this._cache.tags,
+            notes: this._cache.notes,
             settings: this._cache.settings
          })
        });
@@ -114,6 +117,11 @@ class Store {
   _saveTags() {
     this._write(STORAGE_KEYS.TAGS, this._cache.tags);
     this._emit('tags');
+  }
+
+  _saveNotes() {
+    this._write(STORAGE_KEYS.NOTES, this._cache.notes);
+    this._emit('notes');
   }
 
   _saveSettings() {
@@ -192,10 +200,12 @@ class Store {
       if (data.tasks) this._cache.tasks = data.tasks.map(t => this._migrateTask(t));
       if (data.projects) this._cache.projects = data.projects;
       if (data.tags) this._cache.tags = data.tags;
+      if (data.notes !== undefined) this._cache.notes = data.notes;
 
       this._emit('tasks');
       this._emit('projects');
       this._emit('tags');
+      this._emit('notes');
       return true;
     } catch (e) {
       console.warn('data.json load failed, using empty data:', e.message);
@@ -252,6 +262,7 @@ class Store {
       tasks: this._cache.tasks,
       projects: this._cache.projects,
       tags: this._cache.tags,
+      notes: this._cache.notes,
     }, null, 2);
 
     const blob = new Blob([data], { type: 'application/json' });
@@ -643,6 +654,19 @@ class Store {
     return this._cache.settings;
   }
 
+  // ── Notes ──
+
+  getNotes() {
+    return this._cache.notes || '';
+  }
+
+  updateNotes(text) {
+    if (!this._guardEdit()) return false;
+    this._cache.notes = text;
+    this._saveNotes();
+    return true;
+  }
+
   // ── Export / Import ──
 
   exportData() {
@@ -652,6 +676,7 @@ class Store {
       tasks: this._cache.tasks,
       projects: this._cache.projects,
       tags: this._cache.tags,
+      notes: this._cache.notes,
       settings: this._cache.settings,
     }, null, 2);
   }
@@ -674,6 +699,10 @@ class Store {
         this._cache.tags = data.tags;
         this._write(STORAGE_KEYS.TAGS, data.tags);
       }
+      if (data.notes !== undefined) {
+        this._cache.notes = data.notes;
+        this._write(STORAGE_KEYS.NOTES, data.notes);
+      }
       if (data.settings) {
         this._cache.settings = { ...this._cache.settings, ...data.settings };
         this._write(STORAGE_KEYS.SETTINGS, this._cache.settings);
@@ -682,6 +711,7 @@ class Store {
       this._emit('tasks');
       this._emit('projects');
       this._emit('tags');
+      this._emit('notes');
       this._emit('settings');
 
       return true;

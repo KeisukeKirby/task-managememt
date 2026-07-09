@@ -329,6 +329,9 @@ const App = {
       case 'gantt':
         GanttView.render();
         break;
+      case 'notes':
+        NotesView.render();
+        break;
       default:
         DashboardView.render();
     }
