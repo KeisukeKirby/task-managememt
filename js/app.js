@@ -483,6 +483,29 @@ const App = {
     Toast.show('CSVをエクスポートしました', 'success');
   },
 
+  exportNotes() {
+    const notesData = store.getNotes();
+    let text = '';
+    
+    if (notesData && notesData.tabs) {
+      notesData.tabs.forEach(tab => {
+        text += `===================================\n`;
+        text += ` 【${tab.name}】\n`;
+        text += `===================================\n\n`;
+        text += (tab.content || '') + '\n\n\n';
+      });
+    }
+
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `taskdash-notes-${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    Toast.show('メモをテキストとして保存しました', 'success');
+  },
+
   importData() {
     if (!store.isAdmin) {
       Toast.show('管理者のみがインポートできます', 'error');
