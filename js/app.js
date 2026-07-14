@@ -444,6 +444,45 @@ const App = {
     Toast.show('データをエクスポートしました', 'success');
   },
 
+  exportCSV() {
+    const tasks = store.getTasks();
+    const projects = store.getProjects();
+    
+    // Create project map
+    const projectMap = {};
+    projects.forEach(p => projectMap[p.id] = p.name);
+
+    // CSV Header (with BOM for Excel compatibility)
+    let csv = '\uFEFF'; 
+    csv += 'ID,タイトル,プロジェクト,ステータス,優先度,担当者,開始日,期限日,作成日\n';
+
+    // CSV Rows
+    tasks.forEach(task => {
+      const pName = projectMap[task.projectId] || '';
+      const row = [
+        task.id,
+        `"${(task.title || '').replace(/"/g, '""')}"`,
+        `"${pName}"`,
+        task.status,
+        task.priority,
+        `"${task.assignee || ''}"`,
+        task.startDate || '',
+        task.dueDate || '',
+        task.createdAt || ''
+      ];
+      csv += row.join(',') + '\n';
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `taskdash-tasks-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    Toast.show('CSVをエクスポートしました', 'success');
+  },
+
   importData() {
     if (!store.isAdmin) {
       Toast.show('管理者のみがインポートできます', 'error');
