@@ -36,13 +36,29 @@ class Store {
       tasks: (this._read(STORAGE_KEYS.TASKS) || []).map(t => this._migrateTask(t)),
       projects: this._read(STORAGE_KEYS.PROJECTS) || [],
       tags: this._read(STORAGE_KEYS.TAGS) || [],
-      notes: this._read(STORAGE_KEYS.NOTES) || '',
+      notes: this._migrateNotes(this._read(STORAGE_KEYS.NOTES)),
       settings: this._read(STORAGE_KEYS.SETTINGS) || {
         theme: 'system',
         sidebarCollapsed: false,
         defaultView: 'dashboard',
       },
     };
+  }
+
+  _migrateNotes(notesData) {
+    if (!notesData || typeof notesData === 'string') {
+      return {
+        activeTabId: 'tab-1',
+        tabs: [
+          { id: 'tab-1', name: 'メモ 1', content: notesData || '' }
+        ]
+      };
+    }
+    if (!notesData.tabs) {
+      notesData.tabs = [{ id: 'tab-1', name: 'メモ 1', content: '' }];
+      notesData.activeTabId = 'tab-1';
+    }
+    return notesData;
   }
 
   _migrateTask(task) {
@@ -200,7 +216,7 @@ class Store {
       if (data.tasks) this._cache.tasks = data.tasks.map(t => this._migrateTask(t));
       if (data.projects) this._cache.projects = data.projects;
       if (data.tags) this._cache.tags = data.tags;
-      if (data.notes !== undefined) this._cache.notes = data.notes;
+      if (data.notes !== undefined) this._cache.notes = this._migrateNotes(data.notes);
 
       this._emit('tasks');
       this._emit('projects');
@@ -657,12 +673,12 @@ class Store {
   // ── Notes ──
 
   getNotes() {
-    return this._cache.notes || '';
+    return this._cache.notes;
   }
 
-  updateNotes(text) {
+  updateNotes(notesData) {
     if (!this._guardEdit()) return false;
-    this._cache.notes = text;
+    this._cache.notes = notesData;
     this._saveNotes();
     return true;
   }
@@ -700,8 +716,8 @@ class Store {
         this._write(STORAGE_KEYS.TAGS, data.tags);
       }
       if (data.notes !== undefined) {
-        this._cache.notes = data.notes;
-        this._write(STORAGE_KEYS.NOTES, data.notes);
+        this._cache.notes = this._migrateNotes(data.notes);
+        this._write(STORAGE_KEYS.NOTES, this._cache.notes);
       }
       if (data.settings) {
         this._cache.settings = { ...this._cache.settings, ...data.settings };
