@@ -217,7 +217,7 @@ const GanttView = {
 
                         const isCompleted = t.status === 'done';
                         return `<div class="gantt-bar ${isCompleted ? 'completed' : ''}" 
-                               style="left: ${left}px; width: ${width}px; background: #d97706; color: white; position: absolute; top: 4px; height: 28px; line-height: 28px; padding: 0 8px; z-index: 10; opacity: 0.9;"
+                               style="left: ${left}px; width: ${width}px; background: #d97706; color: white; position: absolute; top: 4px; height: 28px; line-height: 28px; padding: 0 8px; z-index: 10; opacity: 0.9; text-align: center;"
                                onclick="EventModal.open('', store.getTask('${t.id}'))"
                                title="${t.title} (${taskStart.toLocaleDateString()} - ${taskEnd.toLocaleDateString()})">${t.title}</div>`;
                       }).join('') : ''}
