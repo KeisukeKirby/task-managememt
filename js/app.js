@@ -153,6 +153,12 @@ const App = {
     // Initialize mode (admin or viewer)
     const mode = await store.initMode();
 
+    // Load default filters from settings if available
+    const settings = store.getSettings();
+    if (settings.defaultFilters) {
+      this.filters = { ...settings.defaultFilters };
+    }
+
     Sidebar.init();
 
     // Apply theme

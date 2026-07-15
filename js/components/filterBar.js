@@ -163,6 +163,15 @@ const FilterBar = {
             </div>
           </div>
 
+          <button class="filter-chip tooltip" data-tooltip="現在のフィルター状態を初期表示に設定" onclick="FilterBar.saveDefaultFilters()" style="margin-left: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;margin-right:2px;">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            既定にする
+          </button>
+
         </div>
       </div>
     `;
@@ -236,5 +245,14 @@ const FilterBar = {
     App.filters.sortDir = sortDir;
     document.querySelectorAll('.dropdown-menu.active').forEach(m => m.classList.remove('active'));
     App.refreshCurrentView();
+  },
+
+  saveDefaultFilters() {
+    if (!store.isAdmin) {
+      Toast.show('デフォルト設定の保存は管理者のみ可能です', 'error');
+      return;
+    }
+    store.updateSettings({ defaultFilters: { ...App.filters } });
+    Toast.show('現在の絞り込み状態をデフォルトに設定しました', 'success');
   },
 };
