@@ -25,11 +25,18 @@
   color: var(--text-tertiary);
 }
 
-.dashboard-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.dashboard-top-row {
+  display: flex;
   gap: var(--space-4);
   margin-bottom: var(--space-8);
+}
+
+.dashboard-stats-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--space-4);
 }
 
 .dashboard-section {
@@ -74,27 +81,62 @@
   gap: var(--space-4);
 }
 
-.dashboard-progress {
+.dashboard-progress-square {
+  flex: 1;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
-}
-
-.dashboard-progress-header {
   display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
+  position: relative;
 }
 
-.dashboard-progress-title {
+.dashboard-progress-square-title {
   font-size: var(--text-md);
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
+  align-self: flex-start;
+  width: 100%;
 }
 
-.dashboard-progress-value {
+.dashboard-progress-circle-wrap {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: var(--space-4) 0;
+}
+
+.circular-chart {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 250px;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: var(--border-default);
+  stroke-width: 8;
+}
+
+.circle-fg {
+  fill: none;
+  stroke: var(--color-primary-500);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dasharray 1s ease-out;
+}
+
+.circle-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   font-size: var(--text-2xl);
   font-weight: var(--weight-bold);
   color: var(--text-primary);
@@ -104,7 +146,8 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
-  margin-top: var(--space-5);
+  width: 100%;
+  margin-top: var(--space-4);
 }
 
 .dashboard-progress-stat {
@@ -942,8 +985,8 @@ body.is-dragging {
 
 /* ── Responsive ── */
 @media (max-width: 1200px) {
-  .dashboard-stats {
-    grid-template-columns: repeat(2, 1fr);
+  .dashboard-top-row {
+    flex-direction: column;
   }
 
   .dashboard-progress-stats {
@@ -971,8 +1014,8 @@ body.is-dragging {
 }
 
 @media (max-width: 768px) {
-  .dashboard-stats {
-    grid-template-columns: repeat(2, 1fr);
+  .dashboard-top-row {
+    flex-direction: column;
   }
 
   .dashboard-tasks-grid {
@@ -1004,7 +1047,7 @@ body.is-dragging {
 }
 
 @media (max-width: 480px) {
-  .dashboard-stats {
+  .dashboard-stats-grid {
     grid-template-columns: 1fr;
   }
 

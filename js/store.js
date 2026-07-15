@@ -448,6 +448,10 @@ class Store {
     return this._cache.tasks.filter(t => isDueToday(t) && t.status !== STATUSES.DONE.key);
   }
 
+  getThisWeekTasks() {
+    return this._cache.tasks.filter(t => isDueThisWeek(t));
+  }
+
   getUpcomingTasks() {
     return this._cache.tasks.filter(t => isDueSoon(t) && t.status !== STATUSES.DONE.key);
   }

@@ -147,6 +147,23 @@ function isDueToday(task) {
   return due.toDateString() === today.toDateString();
 }
 
+function isDueThisWeek(task) {
+  if (!task.dueDate || task.status === STATUSES.DONE.key) return false;
+  const due = new Date(task.dueDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  
+  // Calculate end of this week (assuming Sunday is the last day)
+  // getDay(): 0 is Sunday, 1 is Monday
+  const dayOfWeek = today.getDay();
+  const distanceToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(today.getDate() + distanceToSunday);
+  
+  return due >= today && due <= endOfWeek;
+}
+
 function isDueSoon(task) {
   if (!task.dueDate || task.status === STATUSES.DONE.key) return false;
   const due = new Date(task.dueDate);

@@ -11,7 +11,7 @@ const DashboardView = {
     const stats = store.getStats();
     const overdueTasks = store.getOverdueTasks();
     const todayTasks = store.getTodayTasks();
-    const upcomingTasks = store.getUpcomingTasks();
+    const thisWeekTasks = store.getThisWeekTasks();
     const inProgressTasks = store.getTasksByStatus(STATUSES.IN_PROGRESS.key);
     const recentTasks = store.getTasks().slice(0, 6);
 
@@ -61,72 +61,77 @@ const DashboardView = {
           </a>
         </div>
 
-        <!-- Stats -->
-        <div class="dashboard-stats">
-          <div class="stat-card">
-            <div class="stat-card-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--color-primary-500);">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-              </svg>
+        <!-- Top Row: Stats and Progress -->
+        <div class="dashboard-top-row">
+          
+          <!-- 2x2 Stats Grid -->
+          <div class="dashboard-stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--color-primary-500);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                </svg>
+              </div>
+              <div class="stat-card-value">${stats.total}</div>
+              <div class="stat-card-label">全タスク</div>
             </div>
-            <div class="stat-card-value">${stats.total}</div>
-            <div class="stat-card-label">全タスク</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--color-success-500);">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--color-success-500);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div class="stat-card-value">${stats.completed}</div>
+              <div class="stat-card-label">完了済み</div>
             </div>
-            <div class="stat-card-value">${stats.completed}</div>
-            <div class="stat-card-label">完了済み</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--color-primary-500);">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-              </svg>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--color-primary-500);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="stat-card-value">${stats.inProgress}</div>
+              <div class="stat-card-label">進行中</div>
             </div>
-            <div class="stat-card-value">${stats.inProgress}</div>
-            <div class="stat-card-label">進行中</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-card-icon" style="background: ${stats.overdue > 0 ? 'rgba(244, 63, 94, 0.1)' : 'rgba(148, 163, 184, 0.1)'}; color: ${stats.overdue > 0 ? 'var(--color-danger-500)' : 'var(--text-tertiary)'};">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-                <line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
+            <div class="stat-card">
+              <div class="stat-card-icon" style="background: ${stats.overdue > 0 ? 'rgba(244, 63, 94, 0.1)' : 'rgba(148, 163, 184, 0.1)'}; color: ${stats.overdue > 0 ? 'var(--color-danger-500)' : 'var(--text-tertiary)'};">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <div class="stat-card-value" style="${stats.overdue > 0 ? 'color: var(--color-danger-500)' : ''}">${stats.overdue}</div>
+              <div class="stat-card-label">期限超過</div>
             </div>
-            <div class="stat-card-value" style="${stats.overdue > 0 ? 'color: var(--color-danger-500)' : ''}">${stats.overdue}</div>
-            <div class="stat-card-label">期限超過</div>
           </div>
-        </div>
 
-        <!-- Progress -->
-        <div class="dashboard-progress">
-          <div class="dashboard-progress-header">
-            <span class="dashboard-progress-title">📊 全体の進捗</span>
-            <span class="dashboard-progress-value">${stats.completionRate}%</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-bar-fill" style="width: ${stats.completionRate}%"></div>
-          </div>
-          <div class="dashboard-progress-stats">
-            <div class="dashboard-progress-stat">
-              <div class="dashboard-progress-stat-value" style="color: var(--status-todo)">${stats.todo}</div>
-              <div class="dashboard-progress-stat-label">未着手</div>
+          <!-- Circular Progress Square -->
+          <div class="dashboard-progress-square">
+            <h3 class="dashboard-progress-square-title">全体の進捗</h3>
+            <div class="dashboard-progress-circle-wrap">
+              <svg viewBox="0 0 100 100" class="circular-chart">
+                <circle class="circle-bg" cx="50" cy="50" r="40"></circle>
+                <circle class="circle-fg" cx="50" cy="50" r="40" stroke-dasharray="${(stats.completionRate / 100) * 251.2} 251.2"></circle>
+              </svg>
+              <div class="circle-percent">${stats.completionRate}%</div>
             </div>
-            <div class="dashboard-progress-stat">
-              <div class="dashboard-progress-stat-value" style="color: var(--status-in-progress)">${stats.inProgress}</div>
-              <div class="dashboard-progress-stat-label">進行中</div>
-            </div>
-            <div class="dashboard-progress-stat">
-              <div class="dashboard-progress-stat-value" style="color: var(--status-review)">${stats.review}</div>
-              <div class="dashboard-progress-stat-label">レビュー</div>
-            </div>
-            <div class="dashboard-progress-stat">
-              <div class="dashboard-progress-stat-value" style="color: var(--status-done)">${stats.completed}</div>
-              <div class="dashboard-progress-stat-label">完了</div>
+            <div class="dashboard-progress-stats">
+              <div class="dashboard-progress-stat">
+                <div class="dashboard-progress-stat-value" style="color: var(--status-todo)">${stats.todo}</div>
+                <div class="dashboard-progress-stat-label">未着手</div>
+              </div>
+              <div class="dashboard-progress-stat">
+                <div class="dashboard-progress-stat-value" style="color: var(--status-in-progress)">${stats.inProgress}</div>
+                <div class="dashboard-progress-stat-label">進行中</div>
+              </div>
+              <div class="dashboard-progress-stat">
+                <div class="dashboard-progress-stat-value" style="color: var(--status-review)">${stats.review}</div>
+                <div class="dashboard-progress-stat-label">レビュー</div>
+              </div>
+              <div class="dashboard-progress-stat">
+                <div class="dashboard-progress-stat-value" style="color: var(--status-done)">${stats.completed}</div>
+                <div class="dashboard-progress-stat-label">完了</div>
+              </div>
             </div>
           </div>
         </div>
@@ -148,11 +153,24 @@ const DashboardView = {
         ${todayTasks.length > 0 ? `
         <div class="dashboard-section">
           <div class="dashboard-section-header">
-            <h2 class="dashboard-section-title"><span>📌</span> 今日のタスク</h2>
+            <h2 class="dashboard-section-title"><span>📌</span> 今日のタスク (進行中も含む)</h2>
             <span class="dashboard-section-link" onclick="App.navigateTo('list')">すべて表示</span>
           </div>
           <div class="dashboard-tasks-grid">
             ${todayTasks.slice(0, 4).map(t => TaskCard.render(t)).join('')}
+          </div>
+        </div>
+        ` : ''}
+
+        <!-- This Week's Tasks -->
+        ${thisWeekTasks.length > 0 ? `
+        <div class="dashboard-section">
+          <div class="dashboard-section-header">
+            <h2 class="dashboard-section-title"><span>📅</span> 今週締め切りのタスク</h2>
+            <span class="dashboard-section-link" onclick="App.navigateTo('list')">すべて表示</span>
+          </div>
+          <div class="dashboard-tasks-grid">
+            ${thisWeekTasks.slice(0, 4).map(t => TaskCard.render(t)).join('')}
           </div>
         </div>
         ` : ''}
