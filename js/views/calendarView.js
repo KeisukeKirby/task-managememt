@@ -101,16 +101,12 @@ const CalendarView = {
                  return a.id.localeCompare(b.id);
               });
 
-              const maxShow = 3;
-              const visibleTasks = dayTasks.slice(0, maxShow);
-              const remaining = dayTasks.length - maxShow;
-
               return `
                 <div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}"
                      onclick="CalendarView.onDayClick('${dateStr}')">
                   <div class="calendar-day-number">${day.getDate()}</div>
                   <div class="calendar-day-tasks">
-                    ${visibleTasks.map(t => {
+                    ${dayTasks.map(t => {
                       let spanClass = '';
                       let showText = true;
                       const dTime = new Date(day).setHours(0,0,0,0);
@@ -138,7 +134,6 @@ const CalendarView = {
                         </div>
                       `;
                     }).join('')}
-                    ${remaining > 0 ? `<span class="calendar-task-more">+${remaining} 件</span>` : ''}
                   </div>
                 </div>
               `;
