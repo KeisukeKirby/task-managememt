@@ -159,7 +159,10 @@ const DashboardView = {
             ${store.getGoals().length === 0 ? '<p style="color: var(--text-tertiary); font-size: var(--text-sm);">設定された中期目標はありません。</p>' : store.getGoals().map(g => `
               <div class="dashboard-goal-item" onclick="if(store.isAdmin) GoalModal.open(store.getGoals().find(x => x.id === '${g.id}'))" style="cursor: ${store.isAdmin ? 'pointer' : 'default'}">
                 <div class="dashboard-goal-content">
-                  <h4 class="dashboard-goal-title">${g.title}</h4>
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-1);">
+                    <h4 class="dashboard-goal-title" style="margin-bottom: 0;">${g.title}</h4>
+                    ${g.deadline ? `<span style="font-size: var(--text-xs); color: var(--text-tertiary); background: var(--bg-app); padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">${g.deadline}</span>` : ''}
+                  </div>
                   ${g.description ? `<p class="dashboard-goal-desc">${g.description}</p>` : ''}
                 </div>
               </div>

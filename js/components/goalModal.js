@@ -15,6 +15,7 @@ const GoalModal = {
     const modal = document.getElementById('goal-modal');
     const title = document.getElementById('goal-modal-title');
     const titleInput = document.getElementById('goal-title-input');
+    const deadlineInput = document.getElementById('goal-deadline-input');
     const descInput = document.getElementById('goal-desc-input');
     const deleteBtn = document.getElementById('goal-delete-btn');
 
@@ -22,6 +23,7 @@ const GoalModal = {
     title.textContent = goal ? '目標を編集' : '新しい中期目標';
     
     titleInput.value = goal ? goal.title : '';
+    deadlineInput.value = goal ? (goal.deadline || '') : '';
     descInput.value = goal ? (goal.description || '') : '';
     
     deleteBtn.style.display = goal ? 'inline-block' : 'none';
@@ -40,6 +42,7 @@ const GoalModal = {
     if (!store.isAdmin) return;
 
     const titleInput = document.getElementById('goal-title-input');
+    const deadlineInput = document.getElementById('goal-deadline-input');
     const descInput = document.getElementById('goal-desc-input');
     
     const title = titleInput.value.trim();
@@ -50,6 +53,7 @@ const GoalModal = {
 
     const updates = {
       title,
+      deadline: deadlineInput.value.trim(),
       description: descInput.value.trim()
     };
 
