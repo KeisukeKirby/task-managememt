@@ -33,13 +33,6 @@ const CalendarView = {
     // Get all tasks with due dates for this month view
     const allTasks = store.getTasks();
 
-    const statusColors = {
-      'todo': { bg: 'rgba(148, 163, 184, 0.15)', text: '#64748b' },
-      'in-progress': { bg: 'rgba(99, 102, 241, 0.15)', text: '#6366f1' },
-      'review': { bg: 'rgba(245, 158, 11, 0.15)', text: '#d97706' },
-      'done': { bg: 'rgba(16, 185, 129, 0.15)', text: '#059669' },
-    };
-
     mainContent.innerHTML = `
       <div class="view-container">
         <div class="list-view-header">
@@ -118,11 +111,6 @@ const CalendarView = {
                   <div class="calendar-day-number">${day.getDate()}</div>
                   <div class="calendar-day-tasks">
                     ${visibleTasks.map(t => {
-                      let colors = statusColors[t.status] || statusColors['todo'];
-                      if (t.projectId === 'events') {
-                        colors = { bg: '#fffbeb', text: '#d97706' };
-                      }
-                      
                       let spanClass = '';
                       let showText = true;
                       const dTime = new Date(day).setHours(0,0,0,0);
@@ -139,9 +127,11 @@ const CalendarView = {
                         }
                       }
 
+                      const statusClass = t.projectId === 'events' ? 'status-events' : (t.status || 'todo');
+
                       return `
-                        <div class="calendar-task-item ${spanClass}" 
-                             style="background: ${colors.bg}; color: ${showText ? colors.text : 'transparent'};"
+                        <div class="calendar-task-item ${spanClass} ${statusClass}" 
+                             style="${!showText ? 'color: transparent;' : ''}"
                              onclick="event.stopPropagation(); ${t.projectId === 'events' ? `EventModal.open('', store.getTask('${t.id}'))` : `TaskModal.open(store.getTask('${t.id}'))`}"
                              title="${t.title}">
                           ${t.title}

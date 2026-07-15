@@ -529,6 +529,49 @@ body.is-dragging {
   border: 1px solid transparent; /* To prevent height jumping if we add borders later */
 }
 
+/* Calendar Task Status Colors */
+.calendar-task-item.status-todo {
+  background: rgba(148, 163, 184, 0.15);
+  color: #64748b;
+}
+.calendar-task-item.status-in-progress {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
+.calendar-task-item.status-review {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+.calendar-task-item.status-done {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+}
+.calendar-task-item.status-events {
+  background: #fffbeb;
+  color: #d97706;
+}
+
+[data-theme="dark"] .calendar-task-item.status-todo {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+}
+[data-theme="dark"] .calendar-task-item.status-in-progress {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+}
+[data-theme="dark"] .calendar-task-item.status-review {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+[data-theme="dark"] .calendar-task-item.status-done {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+}
+[data-theme="dark"] .calendar-task-item.status-events {
+  background: rgba(245, 158, 11, 0.25);
+  color: #fde68a;
+}
+
 .calendar-task-item.task-span-start {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
