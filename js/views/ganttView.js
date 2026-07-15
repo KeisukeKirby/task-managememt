@@ -153,7 +153,7 @@ const GanttView = {
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     </button>
                   </div>
-                  ${group.tasks.map(t => `
+                  ${group.id === 'events' ? '' : group.tasks.map(t => `
                     <div class="gantt-task-item ${t.status === 'done' ? 'completed' : ''}" 
                          onclick="${t.projectId === 'events' ? `EventModal.open('', store.getTask('${t.id}'))` : `TaskModal.open(store.getTask('${t.id}'))`}" title="${t.title}">
                       ${t.title}
@@ -199,8 +199,30 @@ const GanttView = {
                 <!-- タスクバー -->
                 <div class="gantt-timeline-rows">
                   ${activeGroups.map(group => `
-                    <div class="gantt-timeline-group-row"></div>
-                    ${group.tasks.map(t => {
+                    <div class="gantt-timeline-group-row" style="${group.id === 'events' ? 'position: relative;' : ''}">
+                      ${group.id === 'events' ? group.tasks.map(t => {
+                        let taskStart = t.startDate ? new Date(t.startDate) : new Date(t.createdAt.split('T')[0]);
+                        let taskEnd = t.dueDate ? new Date(t.dueDate) : new Date(taskStart);
+                        taskStart.setHours(0,0,0,0);
+                        taskEnd.setHours(0,0,0,0);
+                        if (taskEnd < taskStart) taskEnd = new Date(taskStart);
+
+                        const viewStart = new Date(this.startDate);
+                        viewStart.setHours(0,0,0,0);
+                        const startDiffDays = Math.round((taskStart - viewStart) / (1000 * 60 * 60 * 24));
+                        const durationDays = Math.round((taskEnd - taskStart) / (1000 * 60 * 60 * 24)) + 1;
+                        let left = startDiffDays * this.cellWidth;
+                        let width = durationDays * this.cellWidth;
+                        if (startDiffDays + durationDays <= 0 || startDiffDays >= this.daysToShow) return '';
+
+                        const isCompleted = t.status === 'done';
+                        return \`<div class="gantt-bar \${isCompleted ? 'completed' : ''}" 
+                               style="left: \${left}px; width: \${width}px; background: #d97706; color: white; position: absolute; top: 4px; height: 28px; line-height: 28px; padding: 0 8px; z-index: 10; opacity: 0.9;"
+                               onclick="EventModal.open('', store.getTask('\${t.id}'))"
+                               title="\${t.title} (\${taskStart.toLocaleDateString()} - \${taskEnd.toLocaleDateString()})">\${t.title}</div>\`;
+                      }).join('') : ''}
+                    </div>
+                    ${group.id === 'events' ? '' : group.tasks.map(t => {
                       // バーの位置と幅を計算
                       let taskStart = t.startDate ? new Date(t.startDate) : new Date(t.createdAt.split('T')[0]);
                       let taskEnd = t.dueDate ? new Date(t.dueDate) : new Date(taskStart);

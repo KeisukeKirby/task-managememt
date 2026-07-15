@@ -151,10 +151,12 @@ const EventModal = {
       document.getElementById('event-id-input').value = existingTask.id;
       document.getElementById('event-title-input').value = existingTask.title;
       document.getElementById('event-date-input').value = existingTask.startDate || existingTask.dueDate || dateStr;
+      document.getElementById('event-end-date-input').value = existingTask.dueDate || existingTask.startDate || dateStr;
     } else {
       document.getElementById('event-id-input').value = '';
       document.getElementById('event-title-input').value = '';
       document.getElementById('event-date-input').value = dateStr;
+      document.getElementById('event-end-date-input').value = dateStr;
     }
     
     setTimeout(() => document.getElementById('event-title-input').focus(), 100);
@@ -167,10 +169,11 @@ const EventModal = {
   save() {
     const title = document.getElementById('event-title-input').value.trim();
     const dateStr = document.getElementById('event-date-input').value;
+    const endDateStr = document.getElementById('event-end-date-input').value;
     const id = document.getElementById('event-id-input').value;
     
     if (!title || !dateStr) {
-      Toast.show('日付と名前を入力してください', 'error');
+      Toast.show('開始日と名前を入力してください', 'error');
       return;
     }
     
@@ -178,7 +181,7 @@ const EventModal = {
       title,
       projectId: 'events',
       startDate: dateStr,
-      dueDate: dateStr,
+      dueDate: endDateStr || dateStr,
       status: 'todo',
       importance: 'medium',
       urgency: 'medium'
