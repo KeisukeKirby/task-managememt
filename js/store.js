@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   PROJECTS: 'taskdash_projects',
   TAGS: 'taskdash_tags',
   NOTES: 'taskdash_notes',
+  GOALS: 'taskdash_goals',
   SETTINGS: 'taskdash_settings',
   INITIALIZED: 'taskdash_initialized',
   ADMIN_SESSION: 'taskdash_admin_session',
@@ -37,6 +38,7 @@ class Store {
       projects: this._read(STORAGE_KEYS.PROJECTS) || [],
       tags: this._read(STORAGE_KEYS.TAGS) || [],
       notes: this._migrateNotes(this._read(STORAGE_KEYS.NOTES)),
+      goals: this._read(STORAGE_KEYS.GOALS) || [],
       settings: this._read(STORAGE_KEYS.SETTINGS) || {
         theme: 'system',
         sidebarCollapsed: false,
@@ -248,6 +250,8 @@ class Store {
           this._write(STORAGE_KEYS.TASKS, this._cache.tasks);
           this._write(STORAGE_KEYS.PROJECTS, this._cache.projects);
           this._write(STORAGE_KEYS.TAGS, this._cache.tags);
+          this._write(STORAGE_KEYS.NOTES, this._cache.notes);
+          this._write(STORAGE_KEYS.GOALS, this._cache.goals);
       }
       
       this._loadCache();
@@ -271,6 +275,8 @@ class Store {
         this._cache.tasks = localTasks;
         this._cache.projects = this._read(STORAGE_KEYS.PROJECTS) || [];
         this._cache.tags = this._read(STORAGE_KEYS.TAGS) || [];
+        this._cache.notes = this._migrateNotes(this._read(STORAGE_KEYS.NOTES));
+        this._cache.goals = this._read(STORAGE_KEYS.GOALS) || [];
       }
     }
 
