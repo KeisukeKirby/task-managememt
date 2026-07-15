@@ -29,8 +29,8 @@ const Sidebar = {
         if (view === 'project') return; // Handled below
         
         if (view === 'list') {
-          // Clear project filter when clicking 'Task List' in main nav
-          App.filters = { projectId: 'all' };
+          // Clear project filter but keep defaults when clicking 'Task List' in main nav
+          App.filters = { ...(store.getSettings().defaultFilters || {}), projectId: 'all' };
         }
         App.navigateTo(view);
       });
@@ -81,7 +81,7 @@ const Sidebar = {
       item.addEventListener('click', (e) => {
         if (e.defaultPrevented) return;
         const projectId = item.dataset.projectId;
-        App.filters = { projectId };
+        App.filters = { ...(store.getSettings().defaultFilters || {}), projectId };
         App.navigateTo('list');
       });
 
