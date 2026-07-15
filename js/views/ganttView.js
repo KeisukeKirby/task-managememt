@@ -28,16 +28,24 @@ const GanttView = {
     const sortBy = App.filters.sortBy;
     let activeGroups = [];
 
+    // Ensure events are always extracted first
+    const eventTasks = tasks.filter(t => t.projectId === 'events');
+    const nonEventTasks = tasks.filter(t => t.projectId !== 'events');
+
     if (sortBy === 'startDate' || sortBy === 'dueDate') {
-      // Sort all tasks
-      tasks.sort((a, b) => {
+      // Sort all non-event tasks
+      nonEventTasks.sort((a, b) => {
         let dateA = a[sortBy] ? new Date(a[sortBy]).getTime() : new Date('9999-12-31').getTime();
         let dateB = b[sortBy] ? new Date(b[sortBy]).getTime() : new Date('9999-12-31').getTime();
         return dateA - dateB;
       });
 
       const sortName = sortBy === 'startDate' ? '開始日順' : '締め切り日順';
-      activeGroups = [{ id: 'sorted', name: `すべてのタスク（${sortName}）`, color: '#6366f1', icon: '🕒', tasks: tasks }];
+      
+      activeGroups = [
+        { id: 'events', name: '予定 / イベント', color: '#ffb300', icon: '📅', tasks: eventTasks },
+        { id: 'sorted', name: `すべてのタスク（${sortName}）`, color: '#6366f1', icon: '🕒', tasks: nonEventTasks }
+      ];
     } else {
       // Create groups by project
       const groups = [
@@ -72,7 +80,7 @@ const GanttView = {
         });
       });
 
-      // Remove empty groups (except Events)
+      // Remove empty groups (except Events to keep it visible always)
       activeGroups = groups.filter(g => g.id === 'events' || g.tasks.length > 0);
     }
 
@@ -162,8 +170,15 @@ const GanttView = {
                   const isWeekend = d.getDay() === 0 || d.getDay() === 6;
                   const isToday = d.toDateString() === todayStr;
                   const dayName = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+                  
+                  // offset hours to avoid timezone issues when setting default date in modal
+                  const isoDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                  
                   return `
-                    <div class="gantt-day-header ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''}">
+                    <div class="gantt-day-header ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} tooltip admin-only" 
+                         data-tooltip="クリックして予定を追加" 
+                         onclick="TaskModal.open({ projectId: 'events', startDate: '${isoDate}', dueDate: '${isoDate}' })"
+                         style="cursor: pointer;">
                       <span>${dayName}</span>
                       <span class="gantt-day-number">${d.getDate()}</span>
                     </div>

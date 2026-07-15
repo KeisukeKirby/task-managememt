@@ -118,7 +118,10 @@ const CalendarView = {
                   <div class="calendar-day-number">${day.getDate()}</div>
                   <div class="calendar-day-tasks">
                     ${visibleTasks.map(t => {
-                      const colors = statusColors[t.status] || statusColors['todo'];
+                      let colors = statusColors[t.status] || statusColors['todo'];
+                      if (t.projectId === 'events') {
+                        colors = { bg: '#fffbeb', text: '#d97706' };
+                      }
                       
                       let spanClass = '';
                       let showText = true;
