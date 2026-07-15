@@ -110,7 +110,7 @@ const AdminLogin = {
     if (overlay) overlay.classList.remove('active');
   },
 
-  submit() {
+  async submit() {
     const input = document.getElementById('admin-password-input');
     const errorEl = document.getElementById('admin-login-error');
     if (!input) return;
