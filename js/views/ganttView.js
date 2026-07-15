@@ -21,14 +21,45 @@ const GanttView = {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
 
+    // 1. Filter and group tasks
+    const projects = store.getProjects();
     const tasks = store.getFilteredTasks(App.filters);
 
-    // 開始日でソート（開始日がない場合は作成日で代用）
-    tasks.sort((a, b) => {
-      const dateA = new Date(a.startDate || a.createdAt).getTime();
-      const dateB = new Date(b.startDate || b.createdAt).getTime();
-      return dateA - dateB;
+    // Create groups
+    const groups = [
+      { id: 'events', name: '予定 / イベント', color: '#ffb300', icon: '📅', tasks: [] }
+    ];
+    
+    projects.forEach(p => {
+      groups.push({ ...p, tasks: [] });
     });
+    
+    groups.push({ id: 'none', name: 'プロジェクトなし', color: '#9ca3af', icon: '📁', tasks: [] });
+
+    // Assign tasks to groups
+    tasks.forEach(t => {
+      if (t.projectId === 'events') {
+        groups[0].tasks.push(t);
+      } else if (!t.projectId) {
+        groups[groups.length - 1].tasks.push(t);
+      } else {
+        const group = groups.find(g => g.id === t.projectId);
+        if (group) group.tasks.push(t);
+        else groups[groups.length - 1].tasks.push(t); // Fallback if project deleted
+      }
+    });
+
+    // Sort tasks within each group
+    groups.forEach(g => {
+      g.tasks.sort((a, b) => {
+        const dateA = new Date(a.startDate || a.createdAt).getTime();
+        const dateB = new Date(b.startDate || b.createdAt).getTime();
+        return dateA - dateB;
+      });
+    });
+
+    // Remove empty groups (except Events)
+    const activeGroups = groups.filter(g => g.id === 'events' || g.tasks.length > 0);
 
     // 描画用の日付配列を作成
     const dates = [];
@@ -91,11 +122,20 @@ const GanttView = {
             <div class="gantt-sidebar">
               <div class="gantt-sidebar-header">タスク名</div>
               <div class="gantt-task-list" id="gantt-sidebar-list">
-                ${tasks.map(t => `
-                  <div class="gantt-task-item ${t.status === 'done' ? 'completed' : ''}" 
-                       onclick="TaskModal.open(store.getTask('${t.id}'))" title="${t.title}">
-                    ${t.title}
+                ${activeGroups.map(group => `
+                  <div class="gantt-group-header">
+                    <span class="gantt-group-icon" style="color: ${group.color}">${group.icon}</span>
+                    <span class="gantt-group-name">${group.name}</span>
+                    <button class="gantt-group-add-btn tooltip admin-only" data-tooltip="タスクを追加" onclick="TaskModal.open({ projectId: '${group.id === 'none' ? '' : group.id}' })">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
                   </div>
+                  ${group.tasks.map(t => `
+                    <div class="gantt-task-item ${t.status === 'done' ? 'completed' : ''}" 
+                         onclick="TaskModal.open(store.getTask('${t.id}'))" title="${t.title}">
+                      ${t.title}
+                    </div>
+                  `).join('')}
                 `).join('')}
               </div>
             </div>
@@ -128,52 +168,49 @@ const GanttView = {
 
                 <!-- タスクバー -->
                 <div class="gantt-timeline-rows">
-                  ${tasks.map(t => {
-                    // バーの位置と幅を計算
-                    // 開始日がない場合は作成日、期限がない場合は開始日と同じにする
-                    let taskStart = t.startDate ? new Date(t.startDate) : new Date(t.createdAt.split('T')[0]);
-                    let taskEnd = t.dueDate ? new Date(t.dueDate) : new Date(taskStart);
-                    
-                    // 日付のみで比較するため時間をリセット
-                    taskStart.setHours(0,0,0,0);
-                    taskEnd.setHours(0,0,0,0);
-                    
-                    // 終了日が開始日より前にならないように
-                    if (taskEnd < taskStart) taskEnd = new Date(taskStart);
+                  ${activeGroups.map(group => `
+                    <div class="gantt-timeline-group-row"></div>
+                    ${group.tasks.map(t => {
+                      // バーの位置と幅を計算
+                      let taskStart = t.startDate ? new Date(t.startDate) : new Date(t.createdAt.split('T')[0]);
+                      let taskEnd = t.dueDate ? new Date(t.dueDate) : new Date(taskStart);
+                      
+                      taskStart.setHours(0,0,0,0);
+                      taskEnd.setHours(0,0,0,0);
+                      
+                      if (taskEnd < taskStart) taskEnd = new Date(taskStart);
 
-                    const viewStart = new Date(this.startDate);
-                    viewStart.setHours(0,0,0,0);
+                      const viewStart = new Date(this.startDate);
+                      viewStart.setHours(0,0,0,0);
 
-                    // 日数差を計算
-                    const startDiffDays = Math.round((taskStart - viewStart) / (1000 * 60 * 60 * 24));
-                    const durationDays = Math.round((taskEnd - taskStart) / (1000 * 60 * 60 * 24)) + 1;
+                      const startDiffDays = Math.round((taskStart - viewStart) / (1000 * 60 * 60 * 24));
+                      const durationDays = Math.round((taskEnd - taskStart) / (1000 * 60 * 60 * 24)) + 1;
 
-                    let left = startDiffDays * this.cellWidth;
-                    let width = durationDays * this.cellWidth;
+                      let left = startDiffDays * this.cellWidth;
+                      let width = durationDays * this.cellWidth;
 
-                    // 表示範囲外の処理
-                    let isVisible = true;
-                    if (startDiffDays + durationDays <= 0 || startDiffDays >= this.daysToShow) {
-                      isVisible = false;
-                    }
+                      let isVisible = true;
+                      if (startDiffDays + durationDays <= 0 || startDiffDays >= this.daysToShow) {
+                        isVisible = false;
+                      }
 
-                    // 色の決定（ステータスカラー）
-                    const statusColor = getStatusInfo(t.status).color;
-                    const isCompleted = t.status === 'done';
+                      const statusColor = getStatusInfo(t.status).color;
+                      const isCompleted = t.status === 'done';
 
-                    return `
-                      <div class="gantt-timeline-row">
-                        ${isVisible ? `
-                          <div class="gantt-bar ${isCompleted ? 'completed' : ''}" 
-                               style="left: ${left}px; width: ${width}px; background: ${statusColor}; color: white;"
-                               onclick="TaskModal.open(store.getTask('${t.id}'))"
-                               title="${t.title} (${taskStart.toLocaleDateString()} - ${taskEnd.toLocaleDateString()})">
-                            ${t.title}
-                          </div>
-                        ` : ''}
-                      </div>
-                    `;
-                  }).join('')}
+                      return `
+                        <div class="gantt-timeline-row">
+                          ${isVisible ? `
+                            <div class="gantt-bar ${isCompleted ? 'completed' : ''}" 
+                                 style="left: ${left}px; width: ${width}px; background: ${statusColor}; color: white;"
+                                 onclick="TaskModal.open(store.getTask('${t.id}'))"
+                                 title="${t.title} (${taskStart.toLocaleDateString()} - ${taskEnd.toLocaleDateString()})">
+                              ${t.title}
+                            </div>
+                          ` : ''}
+                        </div>
+                      `;
+                    }).join('')}
+                  `).join('')}
                 </div>
               </div>
             </div>

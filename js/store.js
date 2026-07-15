@@ -477,7 +477,13 @@ class Store {
     }
 
     if (filters.status && filters.status !== 'all') {
-      tasks = tasks.filter(t => t.status === filters.status);
+      if (Array.isArray(filters.status)) {
+        if (filters.status.length > 0) {
+          tasks = tasks.filter(t => filters.status.includes(t.status));
+        }
+      } else {
+        tasks = tasks.filter(t => t.status === filters.status);
+      }
     }
 
     if (filters.importance && filters.importance !== 'all') {

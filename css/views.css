@@ -824,6 +824,79 @@ body.is-dragging {
   opacity: 0.6;
 }
 
+.gantt-bar.completed::after {
+  content: '✓';
+  margin-left: 8px;
+}
+
+.gantt-group-header {
+  height: 36px;
+  line-height: 36px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-body);
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.gantt-group-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.gantt-group-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gantt-group-add-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.gantt-group-header:hover .gantt-group-add-btn {
+  opacity: 1;
+}
+
+.gantt-group-add-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-color);
+}
+
+.gantt-timeline-group-row {
+  height: 36px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+/* ===================================
+   DROPDOWN CHECKBOX UI
+   =================================== */
+
+.dropdown-item input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1200px) {
   .dashboard-stats {

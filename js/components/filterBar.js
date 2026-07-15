@@ -42,7 +42,7 @@ const FilterBar = {
         <div class="filter-bar-group" style="flex: 1; justify-content: flex-end;">
           ${!options.hideStatusFilter ? `
           <div class="dropdown">
-            <button class="filter-chip ${currentFilters.status && currentFilters.status !== 'all' ? 'active' : ''}" 
+            <button class="filter-chip ${currentFilters.status && currentFilters.status.length > 0 && currentFilters.status !== 'all' ? 'active' : ''}" 
                     onclick="FilterBar.toggleDropdown(this)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;">
                 <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
@@ -53,15 +53,21 @@ const FilterBar = {
               </svg>
             </button>
             <div class="dropdown-menu" id="status-dropdown">
-              <div class="dropdown-item ${!currentFilters.status || currentFilters.status === 'all' ? 'active' : ''}" 
-                   onclick="FilterBar.setFilter('status', 'all')">すべて</div>
-              ${Object.values(STATUSES).map(s => `
-                <div class="dropdown-item ${currentFilters.status === s.key ? 'active' : ''}"
-                     onclick="FilterBar.setFilter('status', '${s.key}')">
-                  <span class="status-badge-dot" style="background: ${s.color}; width: 8px; height: 8px; border-radius: 50%;"></span>
-                  ${s.label}
-                </div>
-              `).join('')}
+              <div class="dropdown-item ${!currentFilters.status || currentFilters.status === 'all' || currentFilters.status.length === 0 ? 'active' : ''}" 
+                   onclick="FilterBar.setFilter('status', 'all')">
+                   <div style="width: 16px;"></div> すべて
+              </div>
+              <div class="context-menu-divider"></div>
+              ${Object.values(STATUSES).map(s => {
+                const isChecked = Array.isArray(currentFilters.status) && currentFilters.status.includes(s.key);
+                return `
+                  <div class="dropdown-item" onclick="FilterBar.toggleStatusFilter(event, '${s.key}')">
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} style="margin-right: 8px; pointer-events: none;">
+                    <span class="status-badge-dot" style="background: ${s.color}; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px;"></span>
+                    ${s.label}
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
           ` : ''}
@@ -166,6 +172,42 @@ const FilterBar = {
     App.filters[key] = value;
     document.querySelectorAll('.dropdown-menu.active').forEach(m => m.classList.remove('active'));
     App.refreshCurrentView();
+  },
+
+  toggleStatusFilter(e, statusKey) {
+    e.stopPropagation(); // メニューを閉じない
+    
+    if (!App.filters.status || App.filters.status === 'all') {
+      App.filters.status = [];
+    } else if (!Array.isArray(App.filters.status)) {
+      App.filters.status = [App.filters.status];
+    }
+
+    const index = App.filters.status.indexOf(statusKey);
+    if (index > -1) {
+      App.filters.status.splice(index, 1);
+    } else {
+      App.filters.status.push(statusKey);
+    }
+
+    if (App.filters.status.length === 0) {
+      App.filters.status = 'all';
+    }
+
+    // 画面の再描画（メニューは開いたままにするため、まずはDOMを更新）
+    // render()を呼ぶとすべて再描画されてドロップダウンが閉じるので注意
+    const currentMenu = e.target.closest('.dropdown-menu');
+    const wasActive = currentMenu ? currentMenu.classList.contains('active') : false;
+    
+    App.refreshCurrentView();
+
+    // 再描画後にメニューを再度開く（簡易的な対応）
+    if (wasActive) {
+      setTimeout(() => {
+        const btn = document.querySelector('#status-dropdown')?.previousElementSibling;
+        if (btn) FilterBar.toggleDropdown(btn);
+      }, 0);
+    }
   },
 
   setSort(sortBy, sortDir) {
