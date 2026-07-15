@@ -142,7 +142,7 @@ const CalendarView = {
                       return `
                         <div class="calendar-task-item ${spanClass}" 
                              style="background: ${colors.bg}; color: ${showText ? colors.text : 'transparent'};"
-                             onclick="event.stopPropagation(); TaskModal.open(store.getTask('${t.id}'))"
+                             onclick="event.stopPropagation(); ${t.projectId === 'events' ? `EventModal.open('', store.getTask('${t.id}'))` : `TaskModal.open(store.getTask('${t.id}'))`}"
                              title="${t.title}">
                           ${t.title}
                         </div>

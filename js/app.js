@@ -110,7 +110,7 @@ const AdminLogin = {
     if (overlay) overlay.classList.remove('active');
   },
 
-  async submit() {
+  submit() {
     const input = document.getElementById('admin-password-input');
     const errorEl = document.getElementById('admin-login-error');
     if (!input) return;
@@ -135,6 +135,66 @@ const AdminLogin = {
       input.focus();
     }
   },
+};
+
+// ── Event Modal ──
+const EventModal = {
+  open(dateStr = '', existingTask = null) {
+    if (!store.isAdmin) {
+      Toast.show('予定の編集は管理者のみ可能です', 'error');
+      return;
+    }
+    
+    document.getElementById('event-modal-overlay').classList.add('active');
+    
+    if (existingTask) {
+      document.getElementById('event-id-input').value = existingTask.id;
+      document.getElementById('event-title-input').value = existingTask.title;
+      document.getElementById('event-date-input').value = existingTask.startDate || existingTask.dueDate || dateStr;
+    } else {
+      document.getElementById('event-id-input').value = '';
+      document.getElementById('event-title-input').value = '';
+      document.getElementById('event-date-input').value = dateStr;
+    }
+    
+    setTimeout(() => document.getElementById('event-title-input').focus(), 100);
+  },
+  
+  close() {
+    document.getElementById('event-modal-overlay').classList.remove('active');
+  },
+  
+  save() {
+    const title = document.getElementById('event-title-input').value.trim();
+    const dateStr = document.getElementById('event-date-input').value;
+    const id = document.getElementById('event-id-input').value;
+    
+    if (!title || !dateStr) {
+      Toast.show('日付と名前を入力してください', 'error');
+      return;
+    }
+    
+    const taskData = {
+      title,
+      projectId: 'events',
+      startDate: dateStr,
+      dueDate: dateStr,
+      status: 'todo',
+      importance: 'medium',
+      urgency: 'medium'
+    };
+    
+    if (id) {
+      store.updateTask(id, taskData);
+      Toast.show('予定を更新しました', 'success');
+    } else {
+      store.addTask(taskData);
+      Toast.show('予定を追加しました', 'success');
+    }
+    
+    this.close();
+    App.refreshCurrentView();
+  }
 };
 
 // ── Main App ──

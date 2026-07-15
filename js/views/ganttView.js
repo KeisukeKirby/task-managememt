@@ -149,13 +149,13 @@ const GanttView = {
                   <div class="gantt-group-header">
                     <span class="gantt-group-icon" style="color: ${group.color}">${group.icon}</span>
                     <span class="gantt-group-name">${group.name}</span>
-                    <button class="gantt-group-add-btn tooltip admin-only" data-tooltip="タスクを追加" onclick="TaskModal.open({ projectId: '${group.id === 'none' ? '' : group.id}' })">
+                    <button class="gantt-group-add-btn tooltip admin-only" data-tooltip="タスクを追加" onclick="${group.id === 'events' ? `EventModal.open()` : `TaskModal.open({ projectId: '${group.id === 'none' ? '' : group.id}' })`}">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     </button>
                   </div>
                   ${group.tasks.map(t => `
                     <div class="gantt-task-item ${t.status === 'done' ? 'completed' : ''}" 
-                         onclick="TaskModal.open(store.getTask('${t.id}'))" title="${t.title}">
+                         onclick="${t.projectId === 'events' ? `EventModal.open('', store.getTask('${t.id}'))` : `TaskModal.open(store.getTask('${t.id}'))`}" title="${t.title}">
                       ${t.title}
                     </div>
                   `).join('')}
@@ -177,7 +177,7 @@ const GanttView = {
                   return `
                     <div class="gantt-day-header ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} tooltip admin-only" 
                          data-tooltip="クリックして予定を追加" 
-                         onclick="TaskModal.open({ projectId: 'events', startDate: '${isoDate}', dueDate: '${isoDate}' })"
+                         onclick="EventModal.open('${isoDate}')"
                          style="cursor: pointer;">
                       <span>${dayName}</span>
                       <span class="gantt-day-number">${d.getDate()}</span>
