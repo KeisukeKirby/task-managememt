@@ -25,41 +25,56 @@ const GanttView = {
     const projects = store.getProjects();
     const tasks = store.getFilteredTasks(App.filters);
 
-    // Create groups
-    const groups = [
-      { id: 'events', name: '予定 / イベント', color: '#ffb300', icon: '📅', tasks: [] }
-    ];
-    
-    projects.forEach(p => {
-      groups.push({ ...p, tasks: [] });
-    });
-    
-    groups.push({ id: 'none', name: 'プロジェクトなし', color: '#9ca3af', icon: '📁', tasks: [] });
+    const sortBy = App.filters.sortBy;
+    let activeGroups = [];
 
-    // Assign tasks to groups
-    tasks.forEach(t => {
-      if (t.projectId === 'events') {
-        groups[0].tasks.push(t);
-      } else if (!t.projectId) {
-        groups[groups.length - 1].tasks.push(t);
-      } else {
-        const group = groups.find(g => g.id === t.projectId);
-        if (group) group.tasks.push(t);
-        else groups[groups.length - 1].tasks.push(t); // Fallback if project deleted
-      }
-    });
-
-    // Sort tasks within each group
-    groups.forEach(g => {
-      g.tasks.sort((a, b) => {
-        const dateA = new Date(a.startDate || a.createdAt).getTime();
-        const dateB = new Date(b.startDate || b.createdAt).getTime();
+    if (sortBy === 'startDate' || sortBy === 'dueDate') {
+      // Sort all tasks
+      tasks.sort((a, b) => {
+        let dateA = a[sortBy] ? new Date(a[sortBy]).getTime() : new Date('9999-12-31').getTime();
+        let dateB = b[sortBy] ? new Date(b[sortBy]).getTime() : new Date('9999-12-31').getTime();
         return dateA - dateB;
       });
-    });
 
-    // Remove empty groups (except Events)
-    const activeGroups = groups.filter(g => g.id === 'events' || g.tasks.length > 0);
+      const sortName = sortBy === 'startDate' ? '開始日順' : '締め切り日順';
+      activeGroups = [{ id: 'sorted', name: `すべてのタスク（${sortName}）`, color: '#6366f1', icon: '🕒', tasks: tasks }];
+    } else {
+      // Create groups by project
+      const groups = [
+        { id: 'events', name: '予定 / イベント', color: '#ffb300', icon: '📅', tasks: [] }
+      ];
+      
+      projects.forEach(p => {
+        groups.push({ ...p, tasks: [] });
+      });
+      
+      groups.push({ id: 'none', name: 'プロジェクトなし', color: '#9ca3af', icon: '📁', tasks: [] });
+
+      // Assign tasks to groups
+      tasks.forEach(t => {
+        if (t.projectId === 'events') {
+          groups[0].tasks.push(t);
+        } else if (!t.projectId) {
+          groups[groups.length - 1].tasks.push(t);
+        } else {
+          const group = groups.find(g => g.id === t.projectId);
+          if (group) group.tasks.push(t);
+          else groups[groups.length - 1].tasks.push(t); // Fallback if project deleted
+        }
+      });
+
+      // Sort tasks within each group by start date for visualization purposes
+      groups.forEach(g => {
+        g.tasks.sort((a, b) => {
+          const dateA = new Date(a.startDate || a.createdAt).getTime();
+          const dateB = new Date(b.startDate || b.createdAt).getTime();
+          return dateA - dateB;
+        });
+      });
+
+      // Remove empty groups (except Events)
+      activeGroups = groups.filter(g => g.id === 'events' || g.tasks.length > 0);
+    }
 
     // 描画用の日付配列を作成
     const dates = [];

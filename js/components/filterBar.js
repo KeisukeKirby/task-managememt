@@ -142,6 +142,27 @@ const FilterBar = {
           </div>
           ` : ''}
 
+          <div class="dropdown">
+            <button class="filter-chip ${currentFilters.sortBy ? 'active' : ''}"
+                    onclick="FilterBar.toggleDropdown(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;">
+                <path d="M3 15l4 4 4-4M7 19V5M21 9l-4-4-4 4M17 5v14"/>
+              </svg>
+              並び替え
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px;">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+            <div class="dropdown-menu">
+              <div class="dropdown-item ${!currentFilters.sortBy ? 'active' : ''}"
+                   onclick="FilterBar.setSort('', '')">プロジェクト別（標準）</div>
+              <div class="dropdown-item ${currentFilters.sortBy === 'startDate' ? 'active' : ''}"
+                   onclick="FilterBar.setSort('startDate', 'asc')">開始日順</div>
+              <div class="dropdown-item ${currentFilters.sortBy === 'dueDate' ? 'active' : ''}"
+                   onclick="FilterBar.setSort('dueDate', 'asc')">締め切り日順</div>
+            </div>
+          </div>
+
         </div>
       </div>
     `;
