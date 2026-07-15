@@ -149,6 +149,24 @@ const DashboardView = {
         </div>
         ` : ''}
 
+        <!-- Goals Section -->
+        <div class="dashboard-section">
+          <div class="dashboard-section-header">
+            <h2 class="dashboard-section-title"><span>🎯</span> 中期目標</h2>
+            <button class="btn btn-primary admin-only" onclick="GoalModal.open()" style="padding: 4px 12px; font-size: var(--text-sm);">＋ 新しい目標を追加</button>
+          </div>
+          <div class="dashboard-goals-list">
+            ${store.getGoals().length === 0 ? '<p style="color: var(--text-tertiary); font-size: var(--text-sm);">設定された中期目標はありません。</p>' : store.getGoals().map(g => `
+              <div class="dashboard-goal-item" onclick="if(store.isAdmin) GoalModal.open(store.getGoals().find(x => x.id === '${g.id}'))" style="cursor: ${store.isAdmin ? 'pointer' : 'default'}">
+                <div class="dashboard-goal-content">
+                  <h4 class="dashboard-goal-title">${g.title}</h4>
+                  ${g.description ? `<p class="dashboard-goal-desc">${g.description}</p>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
         <!-- Today's Tasks -->
         ${todayTasks.length > 0 ? `
         <div class="dashboard-section">

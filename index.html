@@ -245,6 +245,33 @@
     </div>
   </div>
 
+  <!-- Goal Modal -->
+  <div class="modal-overlay" id="goal-modal" onclick="GoalModal.close()">
+    <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="goal-modal-title">中期目標</h2>
+        <button class="modal-close" onclick="GoalModal.close()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>タイトル</label>
+          <input type="text" id="goal-title-input" class="form-input" placeholder="例: Q3売上目標達成">
+        </div>
+        <div class="form-group">
+          <label>詳細 (任意)</label>
+          <textarea id="goal-desc-input" class="form-input" rows="3" placeholder="目標の詳細やマイルストーンなど..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between;">
+        <button id="goal-delete-btn" class="btn" style="background: var(--color-danger-500); color: white;" onclick="GoalModal.deleteGoal()">削除</button>
+        <div>
+          <button class="btn" onclick="GoalModal.close()">キャンセル</button>
+          <button class="btn btn-primary admin-only" onclick="GoalModal.save()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ Modal Overlay ═══ -->
   <div class="modal-overlay" id="task-modal-overlay" onclick="if(event.target===this) TaskModal.close()">
     <div class="modal" id="task-modal">
@@ -322,7 +349,8 @@
   <script src="js/components/taskCard.js?v=4"></script>
   <script src="js/components/taskModal.js?v=4"></script>
   <script src="js/components/filterBar.js?v=4"></script>
-  <script src="js/views/dashboard.js?v=4"></script>
+  <script src="js/components/goalModal.js"></script>
+  <script src="js/views/dashboard.js"></script>
   <script src="js/views/listView.js?v=4"></script>
   <script src="js/views/progressView.js?v=4"></script>
   <script src="js/views/calendarView.js?v=4"></script>

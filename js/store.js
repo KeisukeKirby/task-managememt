@@ -114,6 +114,7 @@ class Store {
             projects: this._cache.projects,
             tags: this._cache.tags,
             notes: this._cache.notes,
+            goals: this._cache.goals,
             settings: this._cache.settings
          })
        });
@@ -138,6 +139,11 @@ class Store {
   _saveNotes() {
     this._write(STORAGE_KEYS.NOTES, this._cache.notes);
     this._emit('notes');
+  }
+
+  _saveGoals() {
+    this._write(STORAGE_KEYS.GOALS, this._cache.goals);
+    this._emit('goals');
   }
 
   _saveSettings() {
@@ -217,11 +223,13 @@ class Store {
       if (data.projects) this._cache.projects = data.projects;
       if (data.tags) this._cache.tags = data.tags;
       if (data.notes !== undefined) this._cache.notes = this._migrateNotes(data.notes);
+      if (data.goals !== undefined) this._cache.goals = data.goals;
 
       this._emit('tasks');
       this._emit('projects');
       this._emit('tags');
       this._emit('notes');
+      this._emit('goals');
       return true;
     } catch (e) {
       console.warn('data.json load failed, using empty data:', e.message);
@@ -279,6 +287,7 @@ class Store {
       projects: this._cache.projects,
       tags: this._cache.tags,
       notes: this._cache.notes,
+      goals: this._cache.goals,
     }, null, 2);
 
     const blob = new Blob([data], { type: 'application/json' });
@@ -748,6 +757,53 @@ class Store {
   }
 
   // ── Sample Data ──
+
+  // ── Goals CRUD ──
+  getGoals() {
+    return this._cache.goals || [];
+  }
+
+  addGoal(goal) {
+    if (!this._guardEdit()) return null;
+    const newGoal = {
+      id: generateId(),
+      title: goal.title || '無題の目標',
+      description: goal.description || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    if (!this._cache.goals) this._cache.goals = [];
+    this._cache.goals.push(newGoal);
+    this._saveGoals();
+    return newGoal;
+  }
+
+  updateGoal(id, updates) {
+    if (!this._guardEdit()) return null;
+    if (!this._cache.goals) return null;
+    const index = this._cache.goals.findIndex(g => g.id === id);
+    if (index === -1) return null;
+    
+    this._cache.goals[index] = {
+      ...this._cache.goals[index],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    this._saveGoals();
+    return this._cache.goals[index];
+  }
+
+  deleteGoal(id) {
+    if (!this._guardEdit()) return false;
+    if (!this._cache.goals) return false;
+    const initialLen = this._cache.goals.length;
+    this._cache.goals = this._cache.goals.filter(g => g.id !== id);
+    if (this._cache.goals.length !== initialLen) {
+      this._saveGoals();
+      return true;
+    }
+    return false;
+  }
 
   initSampleData() {
     if (localStorage.getItem(STORAGE_KEYS.INITIALIZED)) return false;
