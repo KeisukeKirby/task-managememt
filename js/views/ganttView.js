@@ -3,6 +3,12 @@
 // ガントチャートビュー
 // ===================================
 
+const THAI_HOLIDAYS = [
+  '2026-01-01', '2026-04-06', '2026-04-13', '2026-04-14', '2026-04-15',
+  '2026-05-01', '2026-05-04', '2026-06-03', '2026-07-28', '2026-08-12',
+  '2026-10-13', '2026-10-23', '2026-12-05', '2026-12-10', '2026-12-31'
+];
+
 const GanttView = {
   startDate: new Date(), // 中心となる日付（初期値は今日）
   daysToShow: 30, // 表示する日数
@@ -167,12 +173,10 @@ const GanttView = {
             <div class="gantt-timeline-container" id="gantt-timeline-container">
               <div class="gantt-timeline-header">
                 ${dates.map(d => {
-                  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                  const isoDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                  const isWeekend = d.getDay() === 0 || d.getDay() === 6 || THAI_HOLIDAYS.includes(isoDate);
                   const isToday = d.toDateString() === todayStr;
                   const dayName = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
-                  
-                  // offset hours to avoid timezone issues when setting default date in modal
-                  const isoDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
                   
                   return `
                     <div class="gantt-day-header ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} tooltip admin-only" 
@@ -190,7 +194,8 @@ const GanttView = {
                 <!-- 背景グリッド線 -->
                 <div class="gantt-grid-bg">
                   ${dates.map(d => {
-                    const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                    const isoDate = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+                    const isWeekend = d.getDay() === 0 || d.getDay() === 6 || THAI_HOLIDAYS.includes(isoDate);
                     const isToday = d.toDateString() === todayStr;
                     return `<div class="gantt-grid-col ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''}"></div>`;
                   }).join('')}
