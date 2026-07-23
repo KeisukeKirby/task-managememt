@@ -179,10 +179,9 @@ const GanttView = {
                   const dayName = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
                   
                   return `
-                    <div class="gantt-day-header ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} tooltip admin-only" 
-                         data-tooltip="クリックして予定を追加" 
-                         onclick="EventModal.open('${isoDate}')"
-                         style="cursor: pointer;">
+                    <div class="gantt-day-header ${isWeekend ? 'weekend' : ''} ${isToday ? 'today' : ''} ${store.isAdmin ? 'tooltip' : ''}" 
+                         ${store.isAdmin ? `data-tooltip="クリックして予定を追加" onclick="EventModal.open('${isoDate}')"` : ''}
+                         style="cursor: ${store.isAdmin ? 'pointer' : 'default'};">
                       <span>${dayName}</span>
                       <span class="gantt-day-number">${d.getDate()}</span>
                     </div>
