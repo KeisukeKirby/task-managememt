@@ -8,7 +8,9 @@ const STORAGE_KEYS = {
   PROJECTS: 'taskdash_projects',
   TAGS: 'taskdash_tags',
   NOTES: 'taskdash_notes',
+  NOTES: 'taskdash_notes',
   GOALS: 'taskdash_goals',
+  MONTHLY_GOALS: 'taskdash_monthly_goals',
   SETTINGS: 'taskdash_settings',
   INITIALIZED: 'taskdash_initialized',
   ADMIN_SESSION: 'taskdash_admin_session',
@@ -39,6 +41,7 @@ class Store {
       tags: this._read(STORAGE_KEYS.TAGS) || [],
       notes: this._migrateNotes(this._read(STORAGE_KEYS.NOTES)),
       goals: this._read(STORAGE_KEYS.GOALS) || [],
+      monthlyGoals: this._read(STORAGE_KEYS.MONTHLY_GOALS) || [],
       settings: this._read(STORAGE_KEYS.SETTINGS) || {
         theme: 'system',
         sidebarCollapsed: false,
@@ -117,6 +120,7 @@ class Store {
             tags: this._cache.tags,
             notes: this._cache.notes,
             goals: this._cache.goals,
+            monthlyGoals: this._cache.monthlyGoals,
             settings: this._cache.settings
          })
        });
@@ -146,6 +150,11 @@ class Store {
   _saveGoals() {
     this._write(STORAGE_KEYS.GOALS, this._cache.goals);
     this._emit('goals');
+  }
+
+  _saveMonthlyGoals() {
+    this._write(STORAGE_KEYS.MONTHLY_GOALS, this._cache.monthlyGoals);
+    this._emit('monthlyGoals');
   }
 
   _saveSettings() {
@@ -226,6 +235,7 @@ class Store {
       if (data.tags) this._cache.tags = data.tags;
       if (data.notes !== undefined) this._cache.notes = this._migrateNotes(data.notes);
       if (data.goals !== undefined) this._cache.goals = data.goals;
+      if (data.monthlyGoals !== undefined) this._cache.monthlyGoals = data.monthlyGoals;
 
       this._emit('tasks');
       this._emit('projects');
@@ -252,6 +262,7 @@ class Store {
           this._write(STORAGE_KEYS.TAGS, this._cache.tags);
           this._write(STORAGE_KEYS.NOTES, this._cache.notes);
           this._write(STORAGE_KEYS.GOALS, this._cache.goals);
+          this._write(STORAGE_KEYS.MONTHLY_GOALS, this._cache.monthlyGoals);
       }
       
       this._loadCache();
@@ -277,6 +288,7 @@ class Store {
         this._cache.tags = this._read(STORAGE_KEYS.TAGS) || [];
         this._cache.notes = this._migrateNotes(this._read(STORAGE_KEYS.NOTES));
         this._cache.goals = this._read(STORAGE_KEYS.GOALS) || [];
+        this._cache.monthlyGoals = this._read(STORAGE_KEYS.MONTHLY_GOALS) || [];
       }
     }
 
@@ -294,6 +306,7 @@ class Store {
       tags: this._cache.tags,
       notes: this._cache.notes,
       goals: this._cache.goals,
+      monthlyGoals: this._cache.monthlyGoals,
     }, null, 2);
 
     const blob = new Blob([data], { type: 'application/json' });
@@ -695,17 +708,50 @@ class Store {
     return this._cache.settings;
   }
 
-  // ── Monthly Goal ──
+  // ── Monthly Goals ──
 
-  getMonthlyGoal() {
-    return this._cache.settings.monthlyGoal || { month: '', content: '' };
+  getMonthlyGoals() {
+    return this._cache.monthlyGoals || [];
   }
 
-  updateMonthlyGoal(month, content) {
+  addMonthlyGoal(month, content) {
     if (!this._guardEdit()) return null;
-    this._cache.settings.monthlyGoal = { month, content };
-    this._saveSettings();
-    return this._cache.settings.monthlyGoal;
+    const newGoal = {
+      id: 'mg_' + Date.now() + Math.random().toString(36).substr(2, 5),
+      month: parseInt(month, 10) || 0,
+      content: content,
+      createdAt: new Date().toISOString(),
+    };
+    if (!this._cache.monthlyGoals) this._cache.monthlyGoals = [];
+    this._cache.monthlyGoals.push(newGoal);
+    this._saveMonthlyGoals();
+    return newGoal;
+  }
+
+  updateMonthlyGoal(id, updates) {
+    if (!this._guardEdit()) return null;
+    if (!this._cache.monthlyGoals) return null;
+    const index = this._cache.monthlyGoals.findIndex(g => g.id === id);
+    if (index === -1) return null;
+
+    this._cache.monthlyGoals[index] = {
+      ...this._cache.monthlyGoals[index],
+      ...updates
+    };
+    this._saveMonthlyGoals();
+    return this._cache.monthlyGoals[index];
+  }
+
+  deleteMonthlyGoal(id) {
+    if (!this._guardEdit()) return false;
+    if (!this._cache.monthlyGoals) return false;
+    const initialLen = this._cache.monthlyGoals.length;
+    this._cache.monthlyGoals = this._cache.monthlyGoals.filter(g => g.id !== id);
+    if (this._cache.monthlyGoals.length !== initialLen) {
+      this._saveMonthlyGoals();
+      return true;
+    }
+    return false;
   }
 
   // ── Notes ──

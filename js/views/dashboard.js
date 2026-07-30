@@ -162,18 +162,23 @@ const DashboardView = {
         </div>
         ` : ''}
 
-        <!-- Monthly Goal -->
+        <!-- Monthly Goals -->
         <div class="dashboard-section">
           <div class="dashboard-section-header">
-            <h2 class="dashboard-section-title"><span>📌</span> ${store.getMonthlyGoal().month || '〇月'}の目標</h2>
-            <button class="btn btn-primary admin-only" onclick="MonthlyGoalModal.open()" style="padding: 4px 12px; font-size: var(--text-sm);">目標を編集</button>
+            <h2 class="dashboard-section-title"><span>📌</span> 月間目標</h2>
+            <button class="btn btn-primary admin-only" onclick="MonthlyGoalModal.open()" style="padding: 4px 12px; font-size: var(--text-sm);">＋ 新しい目標を追加</button>
           </div>
           <div class="dashboard-goals-list">
-            <div class="dashboard-goal-item" onclick="if(store.isAdmin) MonthlyGoalModal.open()" style="cursor: ${store.isAdmin ? 'pointer' : 'default'}">
-              <div class="dashboard-goal-content">
-                <p class="dashboard-goal-desc" style="font-size: var(--text-md); color: var(--text-primary); white-space: pre-wrap;">${store.getMonthlyGoal().content || '今月の目標は未設定です。'}</p>
+            ${store.getMonthlyGoals().length === 0 ? '<p style="color: var(--text-tertiary); font-size: var(--text-sm);">設定された月間目標はありません。</p>' : store.getMonthlyGoals().map(g => `
+              <div class="dashboard-goal-item" onclick="if(store.isAdmin) MonthlyGoalModal.open(store.getMonthlyGoals().find(x => x.id === '${g.id}'))" style="cursor: ${store.isAdmin ? 'pointer' : 'default'}">
+                <div class="dashboard-goal-content">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-1);">
+                    <h4 class="dashboard-goal-title" style="margin-bottom: 0;">${g.month}月の目標</h4>
+                  </div>
+                  ${g.content ? `<p class="dashboard-goal-desc" style="white-space: pre-wrap;">${g.content}</p>` : ''}
+                </div>
               </div>
-            </div>
+            `).join('')}
           </div>
         </div>
 

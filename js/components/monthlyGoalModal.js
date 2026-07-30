@@ -4,19 +4,27 @@
 // ===================================
 
 const MonthlyGoalModal = {
-  open() {
+  editingId: null,
+
+  open(goal = null) {
     if (!store.isAdmin) {
       alert('権限がありません。');
       return;
     }
 
     const modal = document.getElementById('monthly-goal-modal');
+    const title = document.getElementById('monthly-goal-modal-title');
     const monthInput = document.getElementById('monthly-goal-month-input');
     const contentInput = document.getElementById('monthly-goal-content-input');
+    const deleteBtn = document.getElementById('monthly-goal-delete-btn');
 
-    const currentGoal = store.getMonthlyGoal();
-    monthInput.value = currentGoal.month || '';
-    contentInput.value = currentGoal.content || '';
+    this.editingId = goal ? goal.id : null;
+    title.textContent = goal ? '月間目標を編集' : '新しい月間目標';
+
+    monthInput.value = goal ? goal.month : '';
+    contentInput.value = goal ? (goal.content || '') : '';
+    
+    deleteBtn.style.display = goal ? 'inline-block' : 'none';
     
     modal.classList.add('active');
     setTimeout(() => monthInput.focus(), 50);
@@ -25,6 +33,7 @@ const MonthlyGoalModal = {
   close() {
     const modal = document.getElementById('monthly-goal-modal');
     modal.classList.remove('active');
+    this.editingId = null;
   },
 
   save() {
@@ -35,15 +44,34 @@ const MonthlyGoalModal = {
     
     const month = monthInput.value.trim();
     if (!month) {
-      alert('〇月を入力してください。');
+      alert('月を数字で入力してください。');
       return;
     }
 
-    store.updateMonthlyGoal(month, contentInput.value.trim());
+    if (this.editingId) {
+      store.updateMonthlyGoal(this.editingId, {
+        month: parseInt(month, 10),
+        content: contentInput.value.trim()
+      });
+    } else {
+      store.addMonthlyGoal(month, contentInput.value.trim());
+    }
+
     this.close();
     
     if (App.currentView === 'dashboard') {
       App.refreshCurrentView();
+    }
+  },
+
+  delete() {
+    if (!store.isAdmin || !this.editingId) return;
+    if (confirm('この目標を削除してもよろしいですか？')) {
+      store.deleteMonthlyGoal(this.editingId);
+      this.close();
+      if (App.currentView === 'dashboard') {
+        App.refreshCurrentView();
+      }
     }
   }
 };
