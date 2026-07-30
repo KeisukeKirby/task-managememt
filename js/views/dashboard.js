@@ -4,6 +4,19 @@
 // ===================================
 
 const DashboardView = {
+  expandedSections: {
+    overdue: false,
+    today: false,
+    thisWeek: false,
+    inProgress: false,
+    recent: false
+  },
+
+  toggleSection(section) {
+    this.expandedSections[section] = !this.expandedSections[section];
+    this.render();
+  },
+
   render() {
     const mainContent = document.getElementById('main-content');
     if (!mainContent) return;
@@ -141,13 +154,28 @@ const DashboardView = {
         <div class="dashboard-section">
           <div class="dashboard-section-header">
             <h2 class="dashboard-section-title"><span>🔴</span> 期限超過のタスク</h2>
-            <span class="dashboard-section-link" onclick="App.navigateTo('list', { overdue: true })">すべて表示</span>
+            ${overdueTasks.length > 4 ? `<span class="dashboard-section-link" onclick="DashboardView.toggleSection('overdue')">${this.expandedSections.overdue ? '折りたたむ' : 'すべて表示'}</span>` : ''}
           </div>
           <div class="dashboard-tasks-grid">
-            ${overdueTasks.slice(0, 4).map(t => TaskCard.render(t)).join('')}
+            ${overdueTasks.slice(0, this.expandedSections.overdue ? overdueTasks.length : 4).map(t => TaskCard.render(t)).join('')}
           </div>
         </div>
         ` : ''}
+
+        <!-- Monthly Goal -->
+        <div class="dashboard-section">
+          <div class="dashboard-section-header">
+            <h2 class="dashboard-section-title"><span>📌</span> ${store.getMonthlyGoal().month || '〇月'}の目標</h2>
+            <button class="btn btn-primary admin-only" onclick="MonthlyGoalModal.open()" style="padding: 4px 12px; font-size: var(--text-sm);">目標を編集</button>
+          </div>
+          <div class="dashboard-goals-list">
+            <div class="dashboard-goal-item" onclick="if(store.isAdmin) MonthlyGoalModal.open()" style="cursor: ${store.isAdmin ? 'pointer' : 'default'}">
+              <div class="dashboard-goal-content">
+                <p class="dashboard-goal-desc" style="font-size: var(--text-md); color: var(--text-primary); white-space: pre-wrap;">${store.getMonthlyGoal().content || '今月の目標は未設定です。'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Goals Section -->
         <div class="dashboard-section">
@@ -175,10 +203,10 @@ const DashboardView = {
         <div class="dashboard-section">
           <div class="dashboard-section-header">
             <h2 class="dashboard-section-title"><span>📌</span> 今日のタスク (進行中も含む)</h2>
-            <span class="dashboard-section-link" onclick="App.navigateTo('list')">すべて表示</span>
+            ${todayTasks.length > 4 ? `<span class="dashboard-section-link" onclick="DashboardView.toggleSection('today')">${this.expandedSections.today ? '折りたたむ' : 'すべて表示'}</span>` : ''}
           </div>
           <div class="dashboard-tasks-grid">
-            ${todayTasks.slice(0, 4).map(t => TaskCard.render(t)).join('')}
+            ${todayTasks.slice(0, this.expandedSections.today ? todayTasks.length : 4).map(t => TaskCard.render(t)).join('')}
           </div>
         </div>
         ` : ''}
@@ -188,10 +216,10 @@ const DashboardView = {
         <div class="dashboard-section">
           <div class="dashboard-section-header">
             <h2 class="dashboard-section-title"><span>📅</span> 今週締め切りのタスク</h2>
-            <span class="dashboard-section-link" onclick="App.navigateTo('list')">すべて表示</span>
+            ${thisWeekTasks.length > 4 ? `<span class="dashboard-section-link" onclick="DashboardView.toggleSection('thisWeek')">${this.expandedSections.thisWeek ? '折りたたむ' : 'すべて表示'}</span>` : ''}
           </div>
           <div class="dashboard-tasks-grid">
-            ${thisWeekTasks.slice(0, 4).map(t => TaskCard.render(t)).join('')}
+            ${thisWeekTasks.slice(0, this.expandedSections.thisWeek ? thisWeekTasks.length : 4).map(t => TaskCard.render(t)).join('')}
           </div>
         </div>
         ` : ''}
@@ -201,10 +229,10 @@ const DashboardView = {
         <div class="dashboard-section">
           <div class="dashboard-section-header">
             <h2 class="dashboard-section-title"><span>🔵</span> 進行中のタスク</h2>
-            <span class="dashboard-section-link" onclick="App.navigateTo('list', { status: 'in-progress' })">すべて表示</span>
+            ${inProgressTasks.length > 4 ? `<span class="dashboard-section-link" onclick="DashboardView.toggleSection('inProgress')">${this.expandedSections.inProgress ? '折りたたむ' : 'すべて表示'}</span>` : ''}
           </div>
           <div class="dashboard-tasks-grid">
-            ${inProgressTasks.slice(0, 4).map(t => TaskCard.render(t)).join('')}
+            ${inProgressTasks.slice(0, this.expandedSections.inProgress ? inProgressTasks.length : 4).map(t => TaskCard.render(t)).join('')}
           </div>
         </div>
         ` : ''}
@@ -214,11 +242,11 @@ const DashboardView = {
         <div class="dashboard-section">
           <div class="dashboard-section-header">
             <h2 class="dashboard-section-title"><span>📋</span> 最近のタスク</h2>
-            <span class="dashboard-section-link" onclick="App.navigateTo('list')">すべて表示</span>
+            ${recentTasks.length > 4 ? `<span class="dashboard-section-link" onclick="DashboardView.toggleSection('recent')">${this.expandedSections.recent ? '折りたたむ' : 'すべて表示'}</span>` : ''}
           </div>
           ${recentTasks.length > 0 ? `
             <div class="dashboard-tasks-grid">
-              ${recentTasks.map(t => TaskCard.render(t)).join('')}
+              ${recentTasks.slice(0, this.expandedSections.recent ? recentTasks.length : 4).map(t => TaskCard.render(t)).join('')}
             </div>
           ` : `
             <div class="empty-state">

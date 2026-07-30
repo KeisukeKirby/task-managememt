@@ -695,6 +695,19 @@ class Store {
     return this._cache.settings;
   }
 
+  // ── Monthly Goal ──
+
+  getMonthlyGoal() {
+    return this._cache.settings.monthlyGoal || { month: '', content: '' };
+  }
+
+  updateMonthlyGoal(month, content) {
+    if (!this._guardEdit()) return null;
+    this._cache.settings.monthlyGoal = { month, content };
+    this._saveSettings();
+    return this._cache.settings.monthlyGoal;
+  }
+
   // ── Notes ──
 
   getNotes() {

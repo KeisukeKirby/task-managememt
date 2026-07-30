@@ -276,6 +276,32 @@
     </div>
   </div>
 
+  <!-- Monthly Goal Modal -->
+  <div class="modal-overlay" id="monthly-goal-modal" onclick="MonthlyGoalModal.close()">
+    <div class="modal-content" style="max-width: 500px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="monthly-goal-modal-title">月間目標の編集</h2>
+        <button class="modal-close" onclick="MonthlyGoalModal.close()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>月 (例: 8月, 2026年8月)</label>
+          <input type="text" id="monthly-goal-month-input" class="form-input" placeholder="例: 8月">
+        </div>
+        <div class="form-group">
+          <label>目標内容</label>
+          <textarea id="monthly-goal-content-input" class="form-input" rows="4" placeholder="今月の目標を入力してください..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end;">
+        <div>
+          <button class="btn" onclick="MonthlyGoalModal.close()">キャンセル</button>
+          <button class="btn btn-primary admin-only" onclick="MonthlyGoalModal.save()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ Modal Overlay ═══ -->
   <div class="modal-overlay" id="task-modal-overlay" onclick="if(event.target===this) TaskModal.close()">
     <div class="modal" id="task-modal">
@@ -354,7 +380,8 @@
   <script src="js/components/taskModal.js?v=6"></script>
   <script src="js/components/filterBar.js?v=6"></script>
   <script src="js/components/goalModal.js?v=6"></script>
-  <script src="js/views/dashboard.js?v=6"></script>
+  <script src="js/components/monthlyGoalModal.js?v=7"></script>
+  <script src="js/views/dashboard.js?v=7"></script>
   <script src="js/views/listView.js?v=6"></script>
   <script src="js/views/progressView.js?v=6"></script>
   <script src="js/views/calendarView.js?v=6"></script>
