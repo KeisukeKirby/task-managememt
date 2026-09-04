@@ -34,30 +34,33 @@ const NotesView = {
           <div id="notes-save-status" style="font-size: var(--text-sm); color: var(--text-tertiary);"></div>
         </div>
 
-        <div class="notes-tabs-container">
-          <div class="notes-tabs" id="notes-tabs">
-            ${this._tabsHtml(notesData)}
-          </div>
-          ${!store.isViewerMode ? `
-            <button class="notes-add-tab-btn tooltip" data-tooltip="新しいメモ" onclick="NotesView.addTab()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-          ` : ''}
-        </div>
-
-        <div style="flex: 1; position: relative; display: flex; flex-direction: column; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 0 0 var(--radius-xl) var(--radius-xl); overflow: hidden; margin-top: -1px;">
-          ${store.isViewerMode ? '' : `
-            <div class="notes-toolbar">
-              <button type="button" class="notes-tool-btn" data-cmd="bold" title="太字 (Ctrl+B)" aria-label="太字"><b>B</b></button>
-              <button type="button" class="notes-tool-btn" data-cmd="strikeThrough" title="取り消し線 (Ctrl+Shift+X)" aria-label="取り消し線"><s>S</s></button>
+        <div class="notes-layout">
+          <div class="notes-sidebar">
+            <div class="notes-tabs" id="notes-tabs">
+              ${this._tabsHtml(notesData)}
             </div>
-          `}
-          <div
-            id="notes-editor"
-            class="notes-textarea"
-            contenteditable="${store.isViewerMode ? 'false' : 'true'}"
-            data-placeholder="ここに自由にメモを記入してください..."
-          >${NotesContent.toHtml(activeTab)}</div>
+            ${!store.isViewerMode ? `
+              <button class="notes-add-tab-btn" title="新しいメモ" onclick="NotesView.addTab()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span class="notes-add-tab-label">新しいメモ</span>
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="notes-main">
+            ${store.isViewerMode ? '' : `
+              <div class="notes-toolbar">
+                <button type="button" class="notes-tool-btn" data-cmd="bold" title="太字 (Ctrl+B)" aria-label="太字"><b>B</b></button>
+                <button type="button" class="notes-tool-btn" data-cmd="strikeThrough" title="取り消し線 (Ctrl+Shift+X)" aria-label="取り消し線"><s>S</s></button>
+              </div>
+            `}
+            <div
+              id="notes-editor"
+              class="notes-textarea"
+              contenteditable="${store.isViewerMode ? 'false' : 'true'}"
+              data-placeholder="ここに自由にメモを記入してください..."
+            >${NotesContent.toHtml(activeTab)}</div>
+          </div>
         </div>
       </div>
     `;
@@ -184,10 +187,19 @@ const NotesView = {
       document.body.classList.remove('is-dragging');
     };
 
-    // 挿入位置: ポインタがタブの右半分なら後ろ、左半分なら前
-    const insertAfter = (tab, clientX) => {
+    // 並びの向きは実際の座標から判定する。
+    // 2つ目が1つ目と同じ行にあれば横並び（狭い画面）、なければ縦並び
+    const isHorizontal = () => {
+      if (tabs.length < 2) return false;
+      return tabs[1].getBoundingClientRect().top < tabs[0].getBoundingClientRect().bottom - 1;
+    };
+
+    // 挿入位置の判定。縦並びなら上下、横並びなら左右で見る
+    const insertAfter = (tab, e) => {
       const rect = tab.getBoundingClientRect();
-      return clientX > rect.left + rect.width / 2;
+      return isHorizontal()
+        ? e.clientX > rect.left + rect.width / 2
+        : e.clientY > rect.top + rect.height / 2;
     };
 
     tabs.forEach(tab => {
@@ -212,7 +224,7 @@ const NotesView = {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         tabs.forEach(t => t.classList.remove('drag-over-before', 'drag-over-after'));
-        tab.classList.add(insertAfter(tab, e.clientX) ? 'drag-over-after' : 'drag-over-before');
+        tab.classList.add(insertAfter(tab, e) ? 'drag-over-after' : 'drag-over-before');
       });
 
       tab.addEventListener('dragleave', () => {
@@ -225,7 +237,7 @@ const NotesView = {
         e.stopPropagation();
 
         const targetIndex = parseInt(tab.dataset.index, 10);
-        let insertIndex = insertAfter(tab, e.clientX) ? targetIndex + 1 : targetIndex;
+        let insertIndex = insertAfter(tab, e) ? targetIndex + 1 : targetIndex;
         // 取り除いた分だけ後ろの挿入位置がずれる
         if (draggedIndex < insertIndex) insertIndex--;
 
