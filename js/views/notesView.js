@@ -46,22 +46,103 @@ const NotesView = {
         </div>
 
         <div style="flex: 1; position: relative; display: flex; flex-direction: column; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 0 0 var(--radius-xl) var(--radius-xl); overflow: hidden; margin-top: -1px;">
-          <textarea 
-            id="notes-textarea" 
-            class="notes-textarea" 
-            placeholder="ここに自由にメモを記入してください..."
-            ${store.isViewerMode ? 'readonly' : ''}
-          >${this._escape(activeTab.content)}</textarea>
+          ${store.isViewerMode ? '' : `
+            <div class="notes-toolbar">
+              <button type="button" class="notes-tool-btn" data-cmd="bold" title="太字 (Ctrl+B)" aria-label="太字"><b>B</b></button>
+              <button type="button" class="notes-tool-btn" data-cmd="strikeThrough" title="取り消し線 (Ctrl+Shift+X)" aria-label="取り消し線"><s>S</s></button>
+            </div>
+          `}
+          <div
+            id="notes-editor"
+            class="notes-textarea"
+            contenteditable="${store.isViewerMode ? 'false' : 'true'}"
+            data-placeholder="ここに自由にメモを記入してください..."
+          >${NotesContent.toHtml(activeTab)}</div>
         </div>
       </div>
     `;
 
+    this._updatePlaceholder();
+
     if (!store.isViewerMode) {
-      const textarea = document.getElementById('notes-textarea');
-      textarea.addEventListener('input', (e) => this.handleInput(e.target.value));
+      const editor = document.getElementById('notes-editor');
+      editor.addEventListener('input', () => {
+        this.handleInput();
+        this._syncToolbar();
+      });
+      editor.addEventListener('keyup', () => this._syncToolbar());
+      editor.addEventListener('mouseup', () => this._syncToolbar());
+      editor.addEventListener('keydown', (e) => this._handleShortcut(e));
+      editor.addEventListener('paste', (e) => this._handlePaste(e));
+
+      document.querySelectorAll('.notes-tool-btn').forEach(btn => {
+        // mousedown を止めないと、押した瞬間に本文の選択が外れて書式が付かない
+        btn.addEventListener('mousedown', (e) => e.preventDefault());
+        btn.addEventListener('click', () => this.applyFormat(btn.dataset.cmd));
+      });
     }
 
     this._bindTabDrag();
+  },
+
+  // 選択範囲に太字・取り消し線を付け外しする
+  applyFormat(command) {
+    if (store.isViewerMode) return;
+    const editor = document.getElementById('notes-editor');
+    if (!editor) return;
+
+    editor.focus();
+    // CSS ではなく <b>/<strike> タグで書式を付ける。
+    // サニタイズで style 属性を落とすため、CSS だと書式が保存されない
+    try {
+      document.execCommand('styleWithCSS', false, false);
+    } catch (e) {
+      // 未対応のブラウザは既定の挙動に任せる
+    }
+    document.execCommand(command, false, null);
+
+    this._syncToolbar();
+    this.handleInput();
+  },
+
+  // カーソル位置の書式をボタンの見た目に反映する
+  _syncToolbar() {
+    document.querySelectorAll('.notes-tool-btn').forEach(btn => {
+      let active = false;
+      try {
+        active = document.queryCommandState(btn.dataset.cmd);
+      } catch (e) {
+        active = false;
+      }
+      btn.classList.toggle('active', active);
+    });
+  },
+
+  _handleShortcut(e) {
+    if (!e.ctrlKey && !e.metaKey) return;
+    const key = e.key.toLowerCase();
+
+    if (key === 'b' && !e.shiftKey) {
+      e.preventDefault();
+      this.applyFormat('bold');
+    } else if (key === 'x' && e.shiftKey) {
+      e.preventDefault();
+      this.applyFormat('strikeThrough');
+    }
+  },
+
+  // 貼り付けはプレーンテキストにする。
+  // 外部サイトの書式やスクリプトを本文に持ち込まないため
+  _handlePaste(e) {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+    document.execCommand('insertText', false, text);
+  },
+
+  _updatePlaceholder() {
+    const editor = document.getElementById('notes-editor');
+    if (!editor) return;
+    editor.classList.toggle('is-empty', editor.textContent.trim() === '');
   },
 
   _tabsHtml(notesData) {
@@ -159,31 +240,53 @@ const NotesView = {
     });
   },
 
-  handleInput(value) {
+  handleInput() {
     const status = document.getElementById('notes-save-status');
     if (status) status.textContent = '保存中...';
+    this._updatePlaceholder();
 
     if (this.saveTimeout) {
       clearTimeout(this.saveTimeout);
     }
 
     this.saveTimeout = setTimeout(() => {
-      const notesData = store.getNotes();
-      const activeTab = notesData.tabs.find(t => t.id === notesData.activeTabId);
-      if (activeTab) {
-        activeTab.content = value;
-        store.updateNotes(notesData);
-        if (status) {
-          status.textContent = '保存しました';
-          setTimeout(() => {
-            if (status.textContent === '保存しました') status.textContent = '';
-          }, 2000);
-        }
-      }
+      this.saveTimeout = null;
+      this._save();
     }, 1000);
   },
 
+  // 保存待ちの内容を今すぐ書き込む。
+  // 編集欄を作り直す操作（タブ切替・追加・改名・削除）の前に呼ぶこと
+  _flushSave() {
+    if (!this.saveTimeout) return;
+    clearTimeout(this.saveTimeout);
+    this.saveTimeout = null;
+    this._save();
+  },
+
+  _save() {
+    const editor = document.getElementById('notes-editor');
+    if (!editor) return;
+
+    const notesData = store.getNotes();
+    const activeTab = notesData.tabs.find(t => t.id === notesData.activeTabId);
+    if (!activeTab) return;
+
+    activeTab.content = NotesContent.sanitize(editor.innerHTML);
+    activeTab.format = 'html';
+    store.updateNotes(notesData);
+
+    const status = document.getElementById('notes-save-status');
+    if (status) {
+      status.textContent = '保存しました';
+      setTimeout(() => {
+        if (status.textContent === '保存しました') status.textContent = '';
+      }, 2000);
+    }
+  },
+
   switchTab(tabId) {
+    this._flushSave();
     const notesData = store.getNotes();
     if (notesData.activeTabId !== tabId) {
       notesData.activeTabId = tabId;
@@ -194,6 +297,7 @@ const NotesView = {
 
   addTab() {
     if (store.isViewerMode) return;
+    this._flushSave();
     const name = prompt('新しいメモの名前を入力してください:', '新しいメモ');
     if (!name || !name.trim()) return;
 
@@ -207,6 +311,7 @@ const NotesView = {
 
   renameTab(tabId, oldName) {
     if (store.isViewerMode) return;
+    this._flushSave();
     const name = prompt('メモの名前を変更:', oldName);
     if (!name || !name.trim()) return;
 
@@ -222,6 +327,7 @@ const NotesView = {
   deleteTab(e, tabId) {
     e.stopPropagation();
     if (store.isViewerMode) return;
+    this._flushSave();
     if (!confirm('このメモを削除しますか？')) return;
 
     const notesData = store.getNotes();

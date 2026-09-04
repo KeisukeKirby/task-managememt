@@ -1228,11 +1228,49 @@ body.is-dragging {
   height: 16px;
 }
 
+.notes-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 12px 24px 0 24px;
+  flex-shrink: 0;
+}
+
+.notes-tool-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--text-base);
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.notes-tool-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-hover);
+}
+
+/* カーソル位置にその書式が効いているとき */
+.notes-tool-btn.active {
+  background: rgba(99, 102, 241, 0.14);
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-500);
+}
+
 .notes-textarea {
   width: 100%;
-  height: 100%;
+  flex: 1;
   min-height: 400px;
-  padding: 24px;
+  padding: 16px 24px 24px 24px;
   border: none;
   resize: none;
   background: transparent;
@@ -1241,13 +1279,23 @@ body.is-dragging {
   font-size: var(--text-base);
   line-height: 1.6;
   outline: none;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .notes-textarea:focus {
   background: rgba(99, 102, 241, 0.02);
 }
 
-.notes-textarea[readonly] {
+.notes-textarea[contenteditable="false"] {
   color: var(--text-secondary);
   cursor: default;
+}
+
+/* contenteditable には placeholder 属性がないので疑似要素で出す */
+.notes-textarea.is-empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-tertiary);
+  pointer-events: none;
 }

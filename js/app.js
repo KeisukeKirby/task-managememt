@@ -454,7 +454,11 @@ const App = {
 
   handleKeyboard(e) {
     // Don't trigger shortcuts when typing in inputs
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+    // contenteditable（メモ本文）も対象。除外しないと n / スラッシュ / 1-5 が
+    // 入力ではなくショートカットとして拾われる
+    const target = e.target;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' || target.isContentEditable) {
       return;
     }
 
@@ -561,7 +565,7 @@ const App = {
         text += `===================================\n`;
         text += ` 【${tab.name}】\n`;
         text += `===================================\n\n`;
-        text += (tab.content || '') + '\n\n\n';
+        text += NotesContent.toPlainText(tab) + '\n\n\n';
       });
     }
 

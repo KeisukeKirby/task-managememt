@@ -222,3 +222,114 @@ function formatRelativeDate(dateStr) {
   if (days < 7) return `${days}日前`;
   return formatDate(dateStr);
 }
+
+// ===================================
+// NOTES CONTENT — メモ本文の書式
+// ===================================
+// tab.format === 'html' のときだけ tab.content は HTML。
+// それ以外は既存のプレーンテキストとして扱う（過去データはそのまま読める）
+
+const NOTES_ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'S', 'STRIKE', 'DEL', 'U', 'BR', 'DIV', 'P']);
+const NOTES_DROPPED_TAGS = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META', 'NOSCRIPT']);
+
+const NotesContent = {
+  isHtml(tab) {
+    return !!tab && tab.format === 'html';
+  },
+
+  // 編集欄に流し込む HTML
+  toHtml(tab) {
+    if (!tab) return '';
+    const content = tab.content || '';
+    return this.isHtml(tab) ? this.sanitize(content) : this.plainToHtml(content);
+  },
+
+  // 書き出し用のプレーンテキスト
+  toPlainText(tab) {
+    if (!tab) return '';
+    const content = tab.content || '';
+    if (!this.isHtml(tab)) return content;
+
+    const body = this._parse(content);
+    this._clean(body);
+
+    // 2つ目以降のブロックはその手前で改行する。
+    // 直前が <br> のときは改行が重複するので入れない
+    body.querySelectorAll('div, p').forEach(el => {
+      const prev = el.previousSibling;
+      if (!prev) return;
+      if (prev.nodeType === Node.ELEMENT_NODE && prev.tagName === 'BR') return;
+      el.before('\n');
+    });
+
+    // ブロック末尾の <br> は編集欄が置く詰め物なので改行を作らない
+    body.querySelectorAll('div > br:last-child, p > br:last-child').forEach(br => br.remove());
+    body.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+
+    return body.textContent.trimEnd();
+  },
+
+  plainToHtml(text) {
+    return this.escape(text).replace(/\r?\n/g, '<br>');
+  },
+
+  escape(text) {
+    return String(text === null || text === undefined ? '' : text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  },
+
+  // 許可したタグ以外は取り除く。管理者が貼り付けた外部HTMLが
+  // 閲覧者の画面で実行されないようにするための防御
+  sanitize(html) {
+    const body = this._parse(html);
+    this._clean(body);
+    return body.innerHTML;
+  },
+
+  // 独立したドキュメントで解析する。スクリプト実行も画像読み込みも起きない
+  _parse(html) {
+    const doc = document.implementation.createHTMLDocument('');
+    doc.body.innerHTML = html === null || html === undefined ? '' : String(html);
+    return doc.body;
+  },
+
+  _clean(node) {
+    Array.from(node.childNodes).forEach(child => {
+      if (child.nodeType === Node.COMMENT_NODE) {
+        child.remove();
+        return;
+      }
+      if (child.nodeType !== Node.ELEMENT_NODE) return;
+
+      if (NOTES_DROPPED_TAGS.has(child.tagName)) {
+        child.remove();
+        return;
+      }
+
+      this._clean(child);
+
+      if (NOTES_ALLOWED_TAGS.has(child.tagName)) {
+        Array.from(child.attributes).forEach(attr => child.removeAttribute(attr.name));
+        return;
+      }
+
+      // 許可外のタグは中身だけ残す。ただし style で書式が付いていれば
+      // 対応するタグに置き換えて見た目を保つ（貼り付けや古いブラウザ対策）
+      const style = (child.getAttribute('style') || '').toLowerCase();
+      let replacement = null;
+      if (/font-weight\s*:\s*(bold|[6-9]00)/.test(style)) replacement = 'b';
+      else if (/text-decoration[^;]*line-through/.test(style)) replacement = 's';
+
+      if (replacement) {
+        const el = node.ownerDocument.createElement(replacement);
+        while (child.firstChild) el.appendChild(child.firstChild);
+        node.replaceChild(el, child);
+      } else {
+        while (child.firstChild) node.insertBefore(child.firstChild, child);
+        child.remove();
+      }
+    });
+  }
+};
