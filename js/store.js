@@ -767,6 +767,19 @@ class Store {
     return true;
   }
 
+  // メモのタブ順は手動並び替えのみ。自動ソートはしない
+  reorderNoteTabs(startIndex, endIndex) {
+    if (!this._guardEdit()) return false;
+    const tabs = this._cache.notes && this._cache.notes.tabs;
+    if (!Array.isArray(tabs)) return false;
+    if (startIndex < 0 || startIndex >= tabs.length) return false;
+
+    const tab = tabs.splice(startIndex, 1)[0];
+    tabs.splice(Math.max(0, Math.min(endIndex, tabs.length)), 0, tab);
+    this._saveNotes();
+    return true;
+  }
+
   // ── Export / Import ──
 
   exportData() {

@@ -1141,6 +1141,36 @@ body.is-dragging {
   user-select: none;
   transition: all var(--transition-fast);
   margin-bottom: -1px;
+  position: relative;
+}
+
+.notes-tab[draggable="true"] {
+  cursor: grab;
+}
+
+.notes-tab.dragging {
+  opacity: 0.4;
+}
+
+/* ドロップ先の挿入位置を示す縦線 */
+.notes-tab.drag-over-before::before,
+.notes-tab.drag-over-after::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--color-primary-500);
+  pointer-events: none;
+}
+
+.notes-tab.drag-over-before::before {
+  left: 0;
+}
+
+.notes-tab.drag-over-after::after {
+  right: 0;
 }
 
 .notes-tab:hover {
