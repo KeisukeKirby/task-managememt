@@ -29,6 +29,7 @@ class Store {
     this._cache = {};
     this._isAdmin = false;
     this._isViewerMode = false;
+    this._cloudHadNotes = false;
     this._loadCache();
   }
 
@@ -48,6 +49,28 @@ class Store {
         defaultView: 'dashboard',
       },
     };
+  }
+
+  // メモは全体上書きの API に載せて同期しているため、
+  // 「中身なし」を「中身あり」の上に書かないための判定をここに集約する
+
+  _hasNoteContent(notesData) {
+    return !!(notesData && Array.isArray(notesData.tabs) &&
+      notesData.tabs.some(t => (t.content || '').trim() !== ''));
+  }
+
+  // 初期化直後の既定値そのままの形。読み込みに失敗したサインとして扱う
+  _looksUninitializedNotes(notesData) {
+    return !!(notesData && Array.isArray(notesData.tabs) && notesData.tabs.length === 1 &&
+      notesData.tabs[0].id === 'tab-1' && !(notesData.tabs[0].content || '').trim());
+  }
+
+  // クラウドと端末のどちらのメモを採用するか。
+  // 原則クラウド優先。ただしクラウドが空で端末に中身があるときは端末を残して復旧させる
+  _resolveNotes() {
+    const remote = this._cache.notes;
+    const local = this._migrateNotes(this._read(STORAGE_KEYS.NOTES));
+    return (!this._hasNoteContent(remote) && this._hasNoteContent(local)) ? local : remote;
   }
 
   _migrateNotes(notesData) {
@@ -108,6 +131,13 @@ class Store {
   }
 
   async _syncToCloud() {
+    // クラウドに中身があったのに手元が初期値のままなら読み込み失敗の疑いが強い。
+    // このまま送るとメモを空で潰すので中止する
+    if (this._cloudHadNotes && this._looksUninitializedNotes(this._cache.notes)) {
+      console.error('Cloud sync aborted: notes look uninitialized (would overwrite existing notes)');
+      return;
+    }
+
     try {
        const isLocal = window.location.protocol === 'file:';
        const apiUrl = isLocal ? 'https://task-managememt.vercel.app/api/tasks' : '/api/tasks';
@@ -194,6 +224,12 @@ class Store {
           this._write(STORAGE_KEYS.TASKS, this._cache.tasks);
           this._write(STORAGE_KEYS.PROJECTS, this._cache.projects);
           this._write(STORAGE_KEYS.TAGS, this._cache.tags);
+          // メモと目標も書き戻す。書かないと直後の _loadCache() が端末側の空データを
+          // 読み込み、次の保存でクラウドのメモを空で上書きしてしまう
+          this._cache.notes = this._resolveNotes();
+          this._write(STORAGE_KEYS.NOTES, this._cache.notes);
+          this._write(STORAGE_KEYS.GOALS, this._cache.goals);
+          this._write(STORAGE_KEYS.MONTHLY_GOALS, this._cache.monthlyGoals);
       } else if (!this._read(STORAGE_KEYS.TASKS)) {
         this.initSampleData();
       }
@@ -233,7 +269,10 @@ class Store {
       if (data.tasks) this._cache.tasks = data.tasks.map(t => this._migrateTask(t));
       if (data.projects) this._cache.projects = data.projects;
       if (data.tags) this._cache.tags = data.tags;
-      if (data.notes !== undefined) this._cache.notes = this._migrateNotes(data.notes);
+      if (data.notes !== undefined) {
+        this._cache.notes = this._migrateNotes(data.notes);
+        if (this._hasNoteContent(this._cache.notes)) this._cloudHadNotes = true;
+      }
       if (data.goals !== undefined) this._cache.goals = data.goals;
       if (data.monthlyGoals !== undefined) this._cache.monthlyGoals = data.monthlyGoals;
 
@@ -260,6 +299,7 @@ class Store {
           this._write(STORAGE_KEYS.TASKS, this._cache.tasks);
           this._write(STORAGE_KEYS.PROJECTS, this._cache.projects);
           this._write(STORAGE_KEYS.TAGS, this._cache.tags);
+          this._cache.notes = this._resolveNotes();
           this._write(STORAGE_KEYS.NOTES, this._cache.notes);
           this._write(STORAGE_KEYS.GOALS, this._cache.goals);
           this._write(STORAGE_KEYS.MONTHLY_GOALS, this._cache.monthlyGoals);
