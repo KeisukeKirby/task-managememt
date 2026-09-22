@@ -347,7 +347,7 @@ const App = {
     const hash = window.location.hash.slice(1) || 'dashboard';
     const [view, ...params] = hash.split('/');
 
-    const validViews = ['dashboard', 'list', 'progress', 'calendar', 'gantt'];
+    const validViews = ['dashboard', 'list', 'progress', 'calendar', 'gantt', 'notes'];
     if (validViews.includes(view)) {
       this.showView(view);
     } else {
@@ -377,6 +377,7 @@ const App = {
       progress: '全体進捗管理',
       calendar: 'カレンダー',
       gantt: 'ガントチャート',
+      notes: 'メモ',
     };
 
     Header.setTitle(titles[view] || view);
