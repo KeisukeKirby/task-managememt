@@ -314,7 +314,9 @@ const LibraryView = {
     if (editing) return '';   // 編集中の操作は本文側に出す
 
     const buttons = [];
-    if (item.type === 'memo') buttons.push(`<button class="btn btn-sm btn-secondary" data-action="edit-content" data-id="${id}">内容を編集</button>`);
+    if (item.type === 'memo' || item.type === 'table') {
+      buttons.push(`<button class="btn btn-sm btn-secondary" data-action="edit-content" data-id="${id}">内容を編集</button>`);
+    }
     buttons.push(`<button class="btn btn-sm btn-secondary" data-action="edit-info" data-id="${id}">名前・分類</button>`);
     buttons.push(`<button class="btn btn-sm btn-danger" data-action="delete" data-id="${id}">削除</button>`);
     return buttons.join('');
@@ -336,6 +338,12 @@ const LibraryView = {
         if (token !== this._detailToken) return;
         body.innerHTML = this._memoBodyHtml(content);
         if (this.editing && this.editing.itemId === item.id) this._bindMemoEditor();
+        return;
+      }
+      if (item.type === 'table') {
+        const content = item.content ? await LibraryStore.loadContent(item.content) : { columns: [], rows: [] };
+        if (token !== this._detailToken) return;
+        LibraryTable.mount(body, item, content, !!(this.editing && this.editing.itemId === item.id));
         return;
       }
       body.innerHTML = this._noticeHtml('この種類はまだ表示できません', escapeHtml(item.type));
@@ -464,6 +472,45 @@ const LibraryView = {
       if (!title) { Toast.show('タイトルを入力してください', 'error'); return false; }
       const id = await this._createItem({ type: 'memo', title, categoryId: form.categoryId.value || null, text: '' });
       this.editing = { itemId: id, dirty: false };
+      this._go(id);
+    });
+  },
+
+  newTableFromPaste() {
+    this._openModal('Excelから貼り付けて表を作る', `
+      ${this._titleFieldHtml('')}
+      <div class="form-group">
+        <label class="form-label">貼り付け (Excelやスプレッドシートで範囲をコピーして、ここに貼り付け)</label>
+        <textarea name="pasted" class="form-input library-paste-area" rows="8" placeholder="品番	サイズ	価格&#10;VFF-KSO-EVO	40	5900" required></textarea>
+      </div>
+      <div class="form-group library-check-row">
+        <label><input type="checkbox" name="hasHeader" checked> 1行目を見出しにする</label>
+      </div>
+      ${this._categoryFieldHtml(this._defaultCategoryId())}
+    `, async (form) => {
+      const title = form.title.value.trim();
+      const pasted = form.pasted.value;
+      if (!title) { Toast.show('タイトルを入力してください', 'error'); return false; }
+      if (!pasted.trim()) { Toast.show('表を貼り付けてください', 'error'); return false; }
+
+      const matrix = parseLibraryDelimited(pasted, detectLibraryDelimiter(pasted));
+      const content = buildLibraryTable(matrix, form.hasHeader.checked ? 0 : -1);
+      if (!content.columns.length) { Toast.show('表として読み取れませんでした', 'error'); return false; }
+
+      const id = generateId();
+      const ref = await LibraryStore.saveContent('item', id, content);
+      const now = new Date().toISOString();
+      await LibraryStore.mutate(draft => {
+        if (draft.items.some(i => i.id === id)) return;
+        draft.items.push({
+          id, type: 'table', title, categoryId: form.categoryId.value || null,
+          createdAt: now, updatedAt: now, deleted: false,
+          content: ref,
+          columns: content.columns.map(c => c.name),
+          summary: { rows: content.rows.length, cols: content.columns.length },
+        });
+      });
+      Toast.show(`${content.rows.length}行の表を作成しました`, 'success');
       this._go(id);
     });
   },
@@ -771,8 +818,20 @@ const LibraryView = {
 
   showAddMenu(e) {
     ContextMenu.show(e.clientX, e.clientY, [
+      { label: 'Excelから貼り付けて表を作る', icon: LIBRARY_TYPES.table.icon, action: () => this.newTableFromPaste() },
       { label: 'メモを作る', icon: LIBRARY_TYPES.memo.icon, action: () => this.newMemo() },
       { label: 'リンクを登録', icon: LIBRARY_TYPES.link.icon, action: () => this.newLink() },
     ]);
+  },
+
+  // 編集の終了 (LibraryTable からも呼ぶ)
+  finishEdit(message) {
+    this.editing = null;
+    if (message) Toast.show(message, 'success');
+    this._draw();
+  },
+
+  markDirty() {
+    if (this.editing) this.editing.dirty = true;
   },
 };

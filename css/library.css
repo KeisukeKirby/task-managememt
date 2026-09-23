@@ -267,6 +267,149 @@
   min-height: 240px;
 }
 
+/* ── 表 ── */
+
+.library-table-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+}
+
+.library-table-filter {
+  width: 220px;
+  height: 32px;
+  padding: 5px 10px;
+  font-size: var(--text-sm);
+}
+
+.library-table-count,
+.library-table-hint {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+}
+
+.library-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+}
+
+.library-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: var(--text-sm);
+}
+
+.library-table th,
+.library-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  text-align: left;
+  white-space: nowrap;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.library-table th:last-child,
+.library-table td:last-child {
+  border-right: none;
+}
+
+.library-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-app);
+  color: var(--text-secondary);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  user-select: none;
+}
+
+.library-table thead th.is-sorted {
+  color: var(--color-primary-500);
+}
+
+.library-table th.is-numeric,
+.library-table td.is-numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.library-table tbody tr:hover td {
+  background: var(--bg-surface-hover);
+}
+
+.library-table td[contenteditable="true"] {
+  cursor: text;
+  white-space: pre-wrap;
+}
+
+.library-table td[contenteditable="true"]:focus {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: -2px;
+  background: var(--bg-surface);
+}
+
+.library-th-sort {
+  margin-left: 4px;
+  font-size: 9px;
+}
+
+.library-th-del,
+.library-row-del {
+  margin-left: 6px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: var(--text-xs);
+}
+
+.library-th-del:hover,
+.library-row-del:hover {
+  color: var(--color-danger-500);
+}
+
+.library-table-rowhead {
+  width: 28px;
+  text-align: center !important;
+  background: var(--bg-app);
+}
+
+.library-table-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 0 2px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.library-paste-area {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.library-check-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
 /* ── リンク ── */
 
 .library-link-body {
