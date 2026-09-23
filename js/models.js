@@ -46,6 +46,17 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
 }
 
+// 属性値の中でも安全なように引用符まで変換する。
+// 資料庫は誰でも API に書き込めるため、表示する文字列は必ずこれを通す
+function escapeHtml(value) {
+  return String(value === null || value === undefined ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function createTask({
   title = '',
   description = '',

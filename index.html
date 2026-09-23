@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="css/components.css?v=4">
   <link rel="stylesheet" href="css/views.css?v=7">
   <link rel="stylesheet" href="css/animations.css?v=4">
+  <link rel="stylesheet" href="css/library.css?v=1">
 
   <!-- Favicon (inline SVG) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
@@ -102,6 +103,16 @@
               </svg>
             </span>
             <span class="sidebar-item-text">メモ</span>
+          </div>
+          <div class="sidebar-item" data-view="library">
+            <span class="sidebar-item-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="5" rx="1"/>
+                <path d="M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8"/>
+                <line x1="10" y1="12" x2="14" y2="12"/>
+              </svg>
+            </span>
+            <span class="sidebar-item-text">資料庫</span>
           </div>
         </div>
 
@@ -341,6 +352,11 @@
     </div>
   </div>
 
+  <!-- ═══ Library Modal (資料庫の入力ダイアログ) ═══ -->
+  <div class="modal-overlay" id="library-modal-overlay" onclick="if(event.target===this) LibraryView.closeModal()">
+    <div class="modal" id="library-modal" style="max-width: 460px;"></div>
+  </div>
+
   <!-- ═══ Context Menu ═══ -->
   <div class="context-menu" id="context-menu"></div>
 
@@ -373,8 +389,9 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- ═══ Scripts (order matters) ═══ -->
-  <script src="js/models.js?v=7"></script>
+  <script src="js/models.js?v=8"></script>
   <script src="js/store.js?v=8"></script>
+  <script src="js/libraryStore.js?v=1"></script>
   <script src="js/components/sidebar.js?v=6"></script>
   <script src="js/components/header.js?v=6"></script>
   <script src="js/components/taskCard.js?v=6"></script>
@@ -388,6 +405,7 @@
   <script src="js/views/calendarView.js?v=6"></script>
   <script src="js/views/ganttView.js?v=6"></script>
   <script src="js/views/notesView.js?v=9"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/views/libraryView.js?v=1"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>

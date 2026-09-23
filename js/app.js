@@ -347,9 +347,9 @@ const App = {
     const hash = window.location.hash.slice(1) || 'dashboard';
     const [view, ...params] = hash.split('/');
 
-    const validViews = ['dashboard', 'list', 'progress', 'calendar', 'gantt', 'notes'];
+    const validViews = ['dashboard', 'list', 'progress', 'calendar', 'gantt', 'notes', 'library'];
     if (validViews.includes(view)) {
-      this.showView(view);
+      this.showView(view, params);
     } else {
       this.showView('dashboard');
     }
@@ -357,7 +357,9 @@ const App = {
 
   navigateTo(view, params = {}) {
     this.filters = { ...this.filters, ...params };
-    const currentHash = window.location.hash.slice(1).split('/')[0] || 'dashboard';
+    // 資料庫は #library/<id> のように続きが付くため、ハッシュ全体で比べる。
+    // 資料を開いたままサイドバーを押したら一覧に戻す
+    const currentHash = window.location.hash.slice(1) || 'dashboard';
     if (currentHash === view) {
       this.showView(view);
     } else {
@@ -365,7 +367,10 @@ const App = {
     }
   },
 
-  showView(view) {
+  showView(view, params) {
+    // 資料庫で編集中なら、破棄の確認が取れるまで画面を切り替えない
+    if (this.currentView === 'library' && view !== 'library' && !LibraryView.confirmLeave()) return;
+
     this.currentView = view;
     
     // Set task type filter based on view
@@ -378,6 +383,7 @@ const App = {
       calendar: 'カレンダー',
       gantt: 'ガントチャート',
       notes: 'メモ',
+      library: '資料庫',
     };
 
     Header.setTitle(titles[view] || view);
@@ -401,6 +407,9 @@ const App = {
         break;
       case 'notes':
         NotesView.render();
+        break;
+      case 'library':
+        LibraryView.render(params);
         break;
       default:
         DashboardView.render();
@@ -469,6 +478,7 @@ const App = {
     if (e.key === 'Escape' && modalOpen) {
       TaskModal.close();
       AdminLogin.hide();
+      LibraryView.closeModal();
       return;
     }
 
