@@ -10,6 +10,24 @@ const LIBRARY_TYPES = {
   file: { label: 'ファイル', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' },
 };
 
+// その場で表示してよい種類だけを許可する。ほかは中身を octet-stream 扱いにして
+// ダウンロードだけにする (公開バケットに誰でも置ける以上、HTML などを開かせない)
+const LIBRARY_PREVIEW_IMAGES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'];
+
+const LIBRARY_MIME_BY_EXT = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp',
+  svg: 'image/svg+xml', pdf: 'application/pdf', csv: 'text/csv', tsv: 'text/tab-separated-values',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', xls: 'application/vnd.ms-excel',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  zip: 'application/zip', txt: 'text/plain', md: 'text/markdown',
+};
+
+function guessLibraryMime(name) {
+  const ext = String(name || '').split('.').pop().toLowerCase();
+  return LIBRARY_MIME_BY_EXT[ext] || 'application/octet-stream';
+}
+
 // 資料庫で開いてよいのは http/https のリンクだけ (javascript: などを弾く)
 function safeLibraryUrl(url) {
   try {
@@ -28,6 +46,7 @@ const LibraryView = {
   _detailToken: 0,
   _searchTimer: null,
   _guardBound: false,
+  _blobUrls: [],
 
   // params は #library/<id> の解析結果。省略時は「状態を保ったまま描き直す」
   render(params) {
@@ -328,6 +347,9 @@ const LibraryView = {
     if (!item || !body) return;
 
     const token = ++this._detailToken;
+    // 前に表示していたファイルの一時URLを解放する
+    this._blobUrls.splice(0).forEach(url => URL.revokeObjectURL(url));
+
     try {
       if (item.type === 'link') {
         body.innerHTML = this._linkBodyHtml(item);
@@ -344,6 +366,12 @@ const LibraryView = {
         const content = item.content ? await LibraryStore.loadContent(item.content) : { columns: [], rows: [] };
         if (token !== this._detailToken) return;
         LibraryTable.mount(body, item, content, !!(this.editing && this.editing.itemId === item.id));
+        return;
+      }
+      if (item.type === 'file') {
+        const bytes = await LibraryStore.loadContent(item.file, 'bytes');
+        if (token !== this._detailToken) return;
+        body.innerHTML = this._fileBodyHtml(item, bytes);
         return;
       }
       body.innerHTML = this._noticeHtml('この種類はまだ表示できません', escapeHtml(item.type));
@@ -363,6 +391,90 @@ const LibraryView = {
           : '<div class="library-link-url">開けないURLです</div>'}
         ${item.description ? `<div class="library-link-desc">${escapeHtml(item.description)}</div>` : ''}
       </div>`;
+  },
+
+  // ── Files ──
+
+  _fileBodyHtml(item, bytes) {
+    const info = item.file || {};
+    const mime = String(info.mime || '');
+    const isImage = LIBRARY_PREVIEW_IMAGES.includes(mime);
+    const isPdf = mime === 'application/pdf';
+
+    // 表示できる種類だけ本来の種類で渡す。ほかは実行されない形にしてダウンロード専用にする
+    const blob = new Blob([bytes], { type: isImage || isPdf ? mime : 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    this._blobUrls.push(url);
+
+    let preview;
+    if (isImage) {
+      preview = `<img class="library-file-image" src="${url}" alt="${escapeHtml(info.name || '')}">`;
+    } else if (isPdf) {
+      preview = `
+        <iframe class="library-file-pdf" src="${url}" title="${escapeHtml(info.name || 'PDF')}"></iframe>
+        <a class="library-file-newtab" href="${url}" target="_blank" rel="noopener noreferrer">別のタブで開く</a>`;
+    } else {
+      preview = '<div class="library-loading">この種類はここでは表示できません。ダウンロードして開いてください。</div>';
+    }
+
+    return `
+      <div class="library-file-body">
+        <div class="library-file-bar">
+          <span class="library-file-meta">${escapeHtml(info.name || 'ファイル')} · ${escapeHtml(formatLibraryBytes(info.bytes))}</span>
+          <a class="btn btn-sm btn-primary" href="${url}" download="${escapeHtml(info.name || 'file')}">ダウンロード</a>
+        </div>
+        ${preview}
+      </div>`;
+  },
+
+  pickFiles() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.multiple = true;
+    input.addEventListener('change', () => this.ingestFiles(Array.from(input.files || [])));
+    input.click();
+  },
+
+  async ingestFiles(files) {
+    if (!files.length || !LibraryStore.canEdit()) return;
+    let lastId = null;
+
+    for (const file of files) {
+      try {
+        Toast.show(`${escapeHtml(file.name)} を取り込んでいます...`, 'info', 4000);
+        lastId = await this._ingestFile(file);
+        Toast.show(`${escapeHtml(file.name)} を取り込みました`, 'success');
+      } catch (e) {
+        Toast.show(`${escapeHtml(file.name)}: ${escapeHtml(e.message || '取り込めませんでした')}`, 'error', 6000);
+      }
+    }
+
+    if (files.length === 1 && lastId) this._go(lastId);
+    else this._draw();
+  },
+
+  async _ingestFile(file) {
+    const name = file.name || 'ファイル';
+    const ext = (name.split('.').pop() || '').toLowerCase();
+    const title = name.replace(/\.[^.]+$/, '') || name;
+    const categoryId = this._defaultCategoryId();
+    const id = generateId();
+
+    // テキストはメモに、それ以外は添付ファイルとして保存する
+    if (['txt', 'md'].includes(ext)) {
+      const text = await file.text();
+      const ref = await LibraryStore.saveContent('item', id, { format: 'html', content: NotesContent.plainToHtml(text) });
+      await this._pushItem({ id, type: 'memo', title, categoryId, content: ref, text: text.slice(0, 2000) });
+      return id;
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const ref = await LibraryStore.saveContent('file', id, bytes);
+    await this._pushItem({
+      id, type: 'file', title, categoryId,
+      file: { ...ref, name, mime: file.type || guessLibraryMime(name) },
+    });
+    return id;
   },
 
   // ── Memo ──
@@ -442,12 +554,17 @@ const LibraryView = {
 
   async _createItem(data) {
     const id = generateId();
-    const now = new Date().toISOString();
-    const item = { id, createdAt: now, updatedAt: now, deleted: false, ...data };
-    await LibraryStore.mutate(draft => {
-      if (!draft.items.some(i => i.id === id)) draft.items.push(item);
-    });
+    await this._pushItem({ id, ...data });
     return id;
+  },
+
+  // 409 で同じ変更をやり直すことがあるので、id が既にあれば足さない
+  async _pushItem(data) {
+    const now = new Date().toISOString();
+    await LibraryStore.mutate(draft => {
+      if (draft.items.some(i => i.id === data.id)) return;
+      draft.items.push({ createdAt: now, updatedAt: now, deleted: false, ...data });
+    });
   },
 
   async _updateItem(id, patch) {
@@ -803,6 +920,22 @@ const LibraryView = {
       if (card) { e.preventDefault(); this._go(card.dataset.id); }
     });
 
+    // 画面にファイルを落として取り込む
+    if (LibraryStore.canEdit()) {
+      root.addEventListener('dragover', (e) => {
+        if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes('Files')) return;
+        e.preventDefault();
+        root.classList.add('is-dropping');
+      });
+      root.addEventListener('dragleave', (e) => { if (e.target === root) root.classList.remove('is-dropping'); });
+      root.addEventListener('drop', (e) => {
+        if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+        e.preventDefault();
+        root.classList.remove('is-dropping');
+        this.ingestFiles(Array.from(e.dataTransfer.files));
+      });
+    }
+
     const search = root.querySelector('#library-search');
     if (search) {
       search.addEventListener('input', () => {
@@ -818,6 +951,7 @@ const LibraryView = {
 
   showAddMenu(e) {
     ContextMenu.show(e.clientX, e.clientY, [
+      { label: 'ファイルを取り込む', icon: LIBRARY_TYPES.file.icon, action: () => this.pickFiles() },
       { label: 'Excelから貼り付けて表を作る', icon: LIBRARY_TYPES.table.icon, action: () => this.newTableFromPaste() },
       { label: 'メモを作る', icon: LIBRARY_TYPES.memo.icon, action: () => this.newMemo() },
       { label: 'リンクを登録', icon: LIBRARY_TYPES.link.icon, action: () => this.newLink() },
