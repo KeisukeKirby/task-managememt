@@ -14,6 +14,9 @@ const LIBRARY_TYPES = {
 // ダウンロードだけにする (公開バケットに誰でも置ける以上、HTML などを開かせない)
 const LIBRARY_PREVIEW_IMAGES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'];
 
+// 検索のために中身まで読む表の上限。これより大きい表は見出し・列名で探す
+const LIBRARY_SEARCH_MAX_BYTES = 1000 * 1000;
+
 const LIBRARY_MIME_BY_EXT = {
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp',
   svg: 'image/svg+xml', pdf: 'application/pdf', csv: 'text/csv', tsv: 'text/tab-separated-values',
@@ -47,6 +50,8 @@ const LibraryView = {
   _searchTimer: null,
   _guardBound: false,
   _blobUrls: [],
+  _contentSearch: new Map(),   // 表の中身の検索用テキスト
+  _searchLoading: false,
 
   // params は #library/<id> の解析結果。省略時は「状態を保ったまま描き直す」
   render(params) {
@@ -239,13 +244,59 @@ const LibraryView = {
       item.title, category && category.name, item.text, item.description, item.url,
       item.file && item.file.name, Array.isArray(item.columns) ? item.columns.join(' ') : '',
     ].filter(Boolean).join(' ').toLowerCase();
-    return haystack.includes(query);
+    if (haystack.includes(query)) return true;
+
+    const content = this._contentSearch.get(item.id);
+    return !!(content && content.text.includes(query));
+  },
+
+  // 表の中身も検索対象にする。読み込みは初回の検索時だけ、小さい表に限る
+  async _runContentSearch() {
+    const query = this.query.trim().toLowerCase();
+    if (!query || this._searchLoading) return;
+
+    const pending = LibraryStore.activeItems().filter(item => {
+      if (item.type !== 'table' || !item.content) return false;
+      if ((item.content.bytes || 0) > LIBRARY_SEARCH_MAX_BYTES) return false;
+      const cached = this._contentSearch.get(item.id);
+      return !cached || cached.key !== item.content.paths.join('|');
+    });
+    if (!pending.length) return;
+
+    this._searchLoading = true;
+    if (!this.itemId) this._drawMain();
+    try {
+      for (const item of pending) {
+        try {
+          const content = await LibraryStore.loadContent(item.content);
+          const text = (content.rows || []).map(row => row.join(' ')).join('\n').toLowerCase();
+          this._contentSearch.set(item.id, { key: item.content.paths.join('|'), text });
+        } catch (e) {
+          // 読めない表は検索対象から外すだけにする
+          this._contentSearch.set(item.id, { key: item.content.paths.join('|'), text: '' });
+        }
+      }
+    } finally {
+      this._searchLoading = false;
+    }
+
+    if (this.query.trim().toLowerCase() === query && !this.itemId) this._drawMain();
+  },
+
+  // ヘッダーの検索欄から呼ばれる
+  searchFromHeader(query) {
+    this.query = query || '';
+    this.itemId = null;
+    const input = document.getElementById('library-search');
+    if (input && input.value !== this.query) input.value = this.query;
+    this._drawMain();
+    this._runContentSearch();
   },
 
   _listHtml() {
     const items = this._visibleItems();
     const note = this.query.trim()
-      ? `<div class="library-result-note">「${escapeHtml(this.query.trim())}」の検索結果 ${items.length}件(すべての分類から)</div>`
+      ? `<div class="library-result-note">「${escapeHtml(this.query.trim())}」の検索結果 ${items.length}件(すべての分類から${this._searchLoading ? '・表の中身を読み込み中...' : '・表の中身も含む'})</div>`
       : '';
 
     if (!items.length) {
@@ -977,6 +1028,7 @@ const LibraryView = {
           this.query = search.value;
           this.itemId = null;
           this._drawMain();
+          this._runContentSearch();
         }, 200);
       });
     }

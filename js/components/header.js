@@ -32,7 +32,9 @@ const Header = {
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
           const query = this.searchInput.value.trim();
-          if (App.currentView === 'list' || App.currentView === 'progress') {
+          if (App.currentView === 'library') {
+            LibraryView.searchFromHeader(query);
+          } else if (App.currentView === 'list' || App.currentView === 'progress') {
             App.filters.search = query;
             App.refreshCurrentView();
           } else if (query) {
@@ -45,6 +47,10 @@ const Header = {
         if (e.key === 'Escape') {
           this.searchInput.value = '';
           this.searchInput.blur();
+          if (App.currentView === 'library') {
+            LibraryView.searchFromHeader('');
+            return;
+          }
           App.filters.search = '';
           App.refreshCurrentView();
         }
@@ -64,6 +70,12 @@ const Header = {
 
   setTitle(title) {
     if (this.titleEl) this.titleEl.textContent = title;
+  },
+
+  // 検索欄が何を探すのかは画面によって変わる
+  setSearchMode(view) {
+    if (!this.searchInput) return;
+    this.searchInput.placeholder = view === 'library' ? '資料を検索...' : 'タスクを検索...';
   },
 
   clearSearch() {

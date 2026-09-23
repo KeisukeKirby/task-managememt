@@ -387,6 +387,7 @@ const App = {
     };
 
     Header.setTitle(titles[view] || view);
+    Header.setSearchMode(view);
     Sidebar.setActive(view);
 
     switch (view) {

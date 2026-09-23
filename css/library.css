@@ -505,6 +505,17 @@
 }
 
 @media (max-width: 767px) {
+  /* 見出しが「資料 庫」と折れないように、バッジのほうを下の行へ回す */
+  .library-header .dashboard-section-title {
+    flex-wrap: wrap;
+    white-space: nowrap;
+  }
+
+  .library-mode-badge {
+    margin-left: 0;
+    font-size: 10px;
+  }
+
   .library-header-actions {
     width: 100%;
   }
