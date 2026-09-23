@@ -336,6 +336,7 @@ const LibraryView = {
     if (item.type === 'memo' || item.type === 'table') {
       buttons.push(`<button class="btn btn-sm btn-secondary" data-action="edit-content" data-id="${id}">内容を編集</button>`);
     }
+    if (item.source) buttons.push(`<button class="btn btn-sm btn-secondary" data-action="source" data-id="${id}">元ファイル</button>`);
     buttons.push(`<button class="btn btn-sm btn-secondary" data-action="edit-info" data-id="${id}">名前・分類</button>`);
     buttons.push(`<button class="btn btn-sm btn-danger" data-action="delete" data-id="${id}">削除</button>`);
     return buttons.join('');
@@ -427,6 +428,23 @@ const LibraryView = {
       </div>`;
   },
 
+  // 取り込み元のExcel・CSVを保存してある場合に、そのまま取り出す
+  async downloadSource(id) {
+    const item = LibraryStore.getItem(id);
+    if (!item || !item.source) return;
+    try {
+      const bytes = await LibraryStore.loadContent(item.source, 'bytes');
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = item.source.name || 'file';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      Toast.show(escapeHtml(e.message || '元ファイルを取り出せませんでした'), 'error');
+    }
+  },
+
   pickFiles() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -439,6 +457,10 @@ const LibraryView = {
     if (!files.length || !LibraryStore.canEdit()) return;
     let lastId = null;
 
+    // Excel・CSV はシートと見出し行を選んでもらうため、1件ずつダイアログにかける
+    const spreadsheets = files.filter(f => LibraryImport.isSpreadsheet(f.name));
+    files = files.filter(f => !LibraryImport.isSpreadsheet(f.name));
+
     for (const file of files) {
       try {
         Toast.show(`${escapeHtml(file.name)} を取り込んでいます...`, 'info', 4000);
@@ -449,6 +471,10 @@ const LibraryView = {
       }
     }
 
+    if (spreadsheets.length) {
+      LibraryImport.queue(spreadsheets);
+      return;
+    }
     if (files.length === 1 && lastId) this._go(lastId);
     else this._draw();
   },
@@ -799,7 +825,8 @@ const LibraryView = {
       </div>`;
   },
 
-  _openModal(title, bodyHtml, onSubmit, submitLabel = '保存') {
+  _openModal(title, bodyHtml, onSubmit, submitLabel = '保存', onClose = null) {
+    this._modalClose = onClose;
     const overlay = document.getElementById('library-modal-overlay');
     const modal = document.getElementById('library-modal');
     if (!overlay || !modal) return;
@@ -844,6 +871,9 @@ const LibraryView = {
   closeModal() {
     const overlay = document.getElementById('library-modal-overlay');
     if (overlay) overlay.classList.remove('active');
+    const onClose = this._modalClose;
+    this._modalClose = null;
+    if (onClose) onClose();
   },
 
   // ── Navigation & events ──
@@ -903,6 +933,9 @@ const LibraryView = {
           break;
         case 'save-memo':
           this._saveMemo();
+          break;
+        case 'source':
+          this.downloadSource(id);
           break;
         case 'delete':
           this.deleteItem(id);
