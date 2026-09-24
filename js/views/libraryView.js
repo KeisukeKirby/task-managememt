@@ -12,7 +12,9 @@ const LIBRARY_TYPES = {
 
 // その場で表示してよい種類だけを許可する。ほかは中身を octet-stream 扱いにして
 // ダウンロードだけにする (公開バケットに誰でも置ける以上、HTML などを開かせない)
-const LIBRARY_PREVIEW_IMAGES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'];
+// SVG は入れない。画像として表示はできても、右クリックから開かれると
+// このアプリと同じ資格でスクリプトが動いてしまう
+const LIBRARY_PREVIEW_IMAGES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/bmp'];
 
 // 検索のために中身まで読む表の上限。これより大きい表は見出し・列名で探す
 const LIBRARY_SEARCH_MAX_BYTES = 1000 * 1000;
@@ -107,6 +109,8 @@ const LibraryView = {
   // ── Drawing ──
 
   _draw() {
+    // 通信の完了待ちの間にほかの画面へ移っていることがある。その画面を資料庫で上書きしない
+    if (App.currentView !== 'library') return;
     const main = document.getElementById('main-content');
     if (!main) return;
     main.innerHTML = `
@@ -119,15 +123,13 @@ const LibraryView = {
   },
 
   _drawMain() {
+    if (App.currentView !== 'library') return;
+    // 編集中の入力を消さない。破棄してよいかは confirmLeave だけが決める
+    if (this.editing && this.editing.itemId === this.itemId) return;
     const main = document.getElementById('library-main');
     if (!main) return;
     main.innerHTML = this.itemId ? this._detailShellHtml() : this._listHtml();
     if (this.itemId) this._renderDetail();
-  },
-
-  _drawSidebar() {
-    const el = document.querySelector('#library-root .library-sidebar');
-    if (el) el.innerHTML = this._sidebarHtml();
   },
 
   _ready() {
@@ -283,8 +285,12 @@ const LibraryView = {
     if (this.query.trim().toLowerCase() === query && !this.itemId) this._drawMain();
   },
 
-  // ヘッダーの検索欄から呼ばれる
+  // ヘッダーの検索欄から呼ばれる。編集中なら破棄の確認を通してから一覧に切り替える
   searchFromHeader(query) {
+    if (!this.confirmLeave()) {
+      Header.setSearchValue(this.query);
+      return;
+    }
     this.query = query || '';
     this.itemId = null;
     const input = document.getElementById('library-search');
@@ -305,7 +311,13 @@ const LibraryView = {
       return note + this._noticeHtml(this.categoryId === 'trash' ? 'ゴミ箱は空です' : '資料がありません', desc);
     }
 
-    return note + `<div class="library-grid">${items.map(i => this._cardHtml(i)).join('')}</div>`;
+    const trashBar = (this.categoryId === 'trash' && !this.query.trim() && LibraryStore.canEdit()) ? `
+      <div class="library-trash-bar">
+        <span>一覧からは消えますが、保存先のデータは残ります。</span>
+        <button class="btn btn-sm btn-danger" data-action="empty-trash">ゴミ箱を空にする</button>
+      </div>` : '';
+
+    return note + trashBar + `<div class="library-grid">${items.map(i => this._cardHtml(i)).join('')}</div>`;
   },
 
   _cardHtml(item) {
@@ -394,17 +406,20 @@ const LibraryView = {
   },
 
   async _renderDetail() {
+    if (App.currentView !== 'library') return;
     const item = LibraryStore.getItem(this.itemId);
     const body = document.getElementById('library-detail-body');
     if (!item || !body) return;
 
     const token = ++this._detailToken;
-    // 前に表示していたファイルの一時URLを解放する
-    this._blobUrls.splice(0).forEach(url => URL.revokeObjectURL(url));
+    // 前に表示していたファイルの一時URLは、新しい中身を描いたあとに解放する
+    const stale = this._blobUrls.splice(0);
+    const release = () => stale.forEach(url => URL.revokeObjectURL(url));
 
     try {
       if (item.type === 'link') {
         body.innerHTML = this._linkBodyHtml(item);
+        release();
         return;
       }
       if (item.type === 'memo') {
@@ -412,24 +427,29 @@ const LibraryView = {
         if (token !== this._detailToken) return;
         body.innerHTML = this._memoBodyHtml(content);
         if (this.editing && this.editing.itemId === item.id) this._bindMemoEditor();
+        release();
         return;
       }
       if (item.type === 'table') {
         const content = item.content ? await LibraryStore.loadContent(item.content) : { columns: [], rows: [] };
         if (token !== this._detailToken) return;
         LibraryTable.mount(body, item, content, !!(this.editing && this.editing.itemId === item.id));
+        release();
         return;
       }
       if (item.type === 'file') {
         const bytes = await LibraryStore.loadContent(item.file, 'bytes');
         if (token !== this._detailToken) return;
         body.innerHTML = this._fileBodyHtml(item, bytes);
+        release();
         return;
       }
       body.innerHTML = this._noticeHtml('この種類はまだ表示できません', escapeHtml(item.type));
+      release();
     } catch (e) {
       if (token !== this._detailToken) return;
       body.innerHTML = this._noticeHtml('中身を読み込めませんでした', escapeHtml(e.message || String(e)));
+      release();
     }
   },
 
@@ -490,7 +510,8 @@ const LibraryView = {
       a.href = url;
       a.download = item.source.name || 'file';
       a.click();
-      URL.revokeObjectURL(url);
+      // すぐ解放するとブラウザによってはダウンロードが始まらない
+      setTimeout(() => URL.revokeObjectURL(url), 0);
     } catch (e) {
       Toast.show(escapeHtml(e.message || '元ファイルを取り出せませんでした'), 'error');
     }
@@ -799,6 +820,20 @@ const LibraryView = {
     }
   },
 
+  async emptyTrash() {
+    const count = LibraryStore.trashedItems().length;
+    if (!count) return;
+    if (!confirm(`ゴミ箱の${count}件を一覧から消しますか？\n(保存先のデータは残るので、必要なら取り戻せます)`)) return;
+    try {
+      await LibraryStore.purgeTrash();
+      Toast.show('ゴミ箱を空にしました', 'success');
+      this.categoryId = 'all';
+      this._draw();
+    } catch (e) {
+      Toast.show(escapeHtml(e.message || '空にできませんでした'), 'error');
+    }
+  },
+
   // ── Categories ──
 
   async addCategory() {
@@ -900,7 +935,11 @@ const LibraryView = {
 
     const form = document.getElementById('library-modal-form');
     modal.querySelectorAll('[data-modal="close"]').forEach(btn => btn.addEventListener('click', () => this.closeModal()));
-    modal.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeModal(); });
+    // Escape の受け口はダイアログの入れ物に一度だけ付ける (開くたびに増やさない)
+    if (!modal._libraryEscBound) {
+      modal._libraryEscBound = true;
+      modal.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeModal(); });
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -994,6 +1033,9 @@ const LibraryView = {
         case 'restore':
           e.stopPropagation();
           this.restoreItem(id);
+          break;
+        case 'empty-trash':
+          this.emptyTrash();
           break;
       }
     });

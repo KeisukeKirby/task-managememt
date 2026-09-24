@@ -31,13 +31,18 @@ const LibraryStore = {
   // file:// で開くと既存のタスク保存が本番 API を向くため、資料庫は使えないようにする
   detectMode() {
     if (window.location.protocol === 'file:') return 'disabled';
-    const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (isLocalHost && !new URLSearchParams(window.location.search).has('library-cloud')) return 'local';
+    if (this.isLocalHost) {
+      return new URLSearchParams(window.location.search).has('library-cloud') ? 'cloud' : 'local';
+    }
     return 'cloud';
   },
 
+  // localhost だけでなく、同じLANの端末(スマホでの実機確認など)からも本番に書かないようにする
   get isLocalHost() {
-    return ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const host = String(window.location.hostname || '').replace(/^\[|\]$/g, '').toLowerCase();
+    if (['localhost', '127.0.0.1', '::1', '0.0.0.0'].includes(host)) return true;
+    if (host.endsWith('.local') || host.endsWith('.localhost')) return true;
+    return /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
   },
 
   // 同時に呼ばれても読み込みは 1 回にまとめる
@@ -60,7 +65,10 @@ const LibraryStore = {
 
     try {
       if (this.mode === 'local') {
-        this.index = this._normalize(this._readLocalJson(LIBRARY_LOCAL_KEYS.INDEX)) || this._defaultIndex();
+        // 「保存がまだ無い」と「読めなかった」を分ける。壊れた内容を初期値で上書きしないため
+        const stored = localStorage.getItem(LIBRARY_LOCAL_KEYS.INDEX);
+        this.index = stored ? this._normalize(JSON.parse(stored)) : this._defaultIndex();
+        if (!this.index) throw new Error('この端末に保存された資料一覧を読めませんでした');
       } else {
         const res = await fetch('/api/library?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -152,7 +160,7 @@ const LibraryStore = {
       }
 
       if (res.status === 409) {
-        await this._load();
+        await this.load();
         if (!this.index) throw new Error('最新の資料一覧を読み込めませんでした');
         continue;
       }
@@ -163,6 +171,36 @@ const LibraryStore = {
     throw new Error('ほかの端末の保存と重なりました。もう一度お試しください');
   },
 
+  // ゴミ箱の資料を一覧から完全に外す。中身のファイルは保存先に残る。
+  // 一覧が 1MB の上限に近づいたときの逃げ道でもある
+  async purgeTrash() {
+    if (!this.canEdit()) throw new Error('資料庫を編集できません');
+
+    if (this.mode === 'local') {
+      const draft = JSON.parse(JSON.stringify(this.index));
+      draft.items = draft.items.filter(i => !i.deleted);
+      draft.rev = (draft.rev || 0) + 1;
+      this._writeLocal(LIBRARY_LOCAL_KEYS.INDEX, JSON.stringify(draft));
+      this.index = draft;
+      return;
+    }
+
+    const res = await fetch('/api/library', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'purgeTrash', baseRev: this.index.rev ?? null }),
+    });
+    if (res.status === 409) {
+      await this.load();
+      throw new Error('ほかの端末の保存と重なりました。もう一度お試しください');
+    }
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `削除に失敗しました (HTTP ${res.status})`);
+    }
+    await this.load();
+  },
+
   // ── Contents (tables, memos, files) ──
 
   // 中身を保存し、一覧に書く参照 { paths, encoding, bytes } を返す。
@@ -170,6 +208,7 @@ const LibraryStore = {
   async saveContent(kind, id, payload) {
     const isBinary = payload instanceof Uint8Array;
     const json = isBinary ? null : JSON.stringify(payload);
+    if (!isBinary && typeof json !== 'string') throw new Error('保存する中身がありません');
     const bytes = isBinary ? payload : new TextEncoder().encode(json);
     if (bytes.length > LIBRARY_MAX_BYTES) {
       throw new Error(`大きすぎます(${formatLibraryBytes(bytes.length)})。20MB までです`);
@@ -212,7 +251,13 @@ const LibraryStore = {
     if (ref.encoding === 'json') {
       value = JSON.parse(texts[0]);
     } else {
-      const bytes = this._fromBase64(texts.map(t => JSON.parse(t).data).join(''));
+      // パートの順序はファイル名任せにせず、中に書いてある index / count で確かめる
+      const parts = texts.map(t => JSON.parse(t));
+      if (parts.some(p => !p || typeof p.data !== 'string')) throw new Error('中身のファイルが壊れています');
+      const count = parts[0].count || parts.length;
+      if (count !== parts.length) throw new Error('中身のファイルがそろっていません');
+      parts.sort((a, b) => (a.index || 0) - (b.index || 0));
+      const bytes = this._fromBase64(parts.map(p => p.data).join(''));
       value = as === 'bytes' ? bytes : JSON.parse(new TextDecoder().decode(bytes));
     }
     if (as === 'json') this._cache.set(key, value);
@@ -231,20 +276,26 @@ const LibraryStore = {
     }
     const { uploads } = await res.json();
 
-    // 同時送信は 4 本まで
+    // 同時送信は 4 本まで。1 本でも失敗したら、残りは送らずに止める
     let next = 0;
+    let failure = null;
     const worker = async () => {
-      while (next < uploads.length) {
+      while (next < uploads.length && !failure) {
         const i = next++;
-        const r = await fetch(uploads[i].uploadUrl, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'cache-control': 'max-age=31536000, immutable' },
-          body: parts[i],
-        });
-        if (!r.ok) throw new Error(`アップロードに失敗しました (HTTP ${r.status})`);
+        try {
+          const r = await fetch(uploads[i].uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'cache-control': 'max-age=31536000, immutable' },
+            body: parts[i],
+          });
+          if (!r.ok) throw new Error(`アップロードに失敗しました (HTTP ${r.status})`);
+        } catch (e) {
+          failure = failure || e;
+        }
       }
     };
     await Promise.all(Array.from({ length: Math.min(4, uploads.length) }, worker));
+    if (failure) throw failure;
     return uploads.map(u => u.path);
   },
 
@@ -264,15 +315,6 @@ const LibraryStore = {
     const paths = parts.map((_, i) => `local/${kind}s/${id}/${rev}-${i}.json`);
     paths.forEach((p, i) => this._writeLocal(LIBRARY_LOCAL_KEYS.OBJECT_PREFIX + p, parts[i]));
     return paths;
-  },
-
-  _readLocalJson(key) {
-    try {
-      const text = localStorage.getItem(key);
-      return text ? JSON.parse(text) : null;
-    } catch {
-      return null;
-    }
   },
 
   _writeLocal(key, text) {

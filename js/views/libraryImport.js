@@ -160,6 +160,7 @@ const LibraryImport = {
       });
     }
     const headerSelect = document.getElementById('library-import-header');
+    if (!headerSelect) return;
     headerSelect.addEventListener('change', () => {
       state.headerIndex = Number(headerSelect.value);
       this._refreshPreview();
@@ -209,8 +210,13 @@ const LibraryImport = {
 
     const categoryId = form.categoryId.value || null;
     const allSheets = !!(form.allSheets && form.allSheets.checked);
+    // 表示中のシートは、手で選び直した見出し行をそのまま使う
     const targets = allSheets
-      ? state.sheets.map((sheet, i) => ({ sheet, headerIndex: this.guessHeaderIndex(sheet.matrix), title: `${title} - ${sheet.name}` }))
+      ? state.sheets.map((sheet, i) => ({
+          sheet,
+          headerIndex: i === state.sheetIndex ? state.headerIndex : this.guessHeaderIndex(sheet.matrix),
+          title: `${title} - ${sheet.name}`,
+        }))
       : [{ sheet: state.sheets[state.sheetIndex], headerIndex: state.headerIndex, title }];
 
     // 元ファイルは 1 つだけ保存し、取り込んだ表から共有で参照する
@@ -223,22 +229,35 @@ const LibraryImport = {
 
     let created = 0;
     let lastId = null;
+    let failure = null;
     for (const target of targets) {
       const content = buildLibraryTable(target.sheet.matrix, target.headerIndex);
       if (!content.columns.length) continue;
-      const id = generateId();
-      const ref = await LibraryStore.saveContent('item', id, content);
-      await LibraryView._pushItem({
-        id, type: 'table', title: target.title, categoryId,
-        content: ref,
-        columns: content.columns.map(c => c.name),
-        summary: { rows: content.rows.length, cols: content.columns.length },
-        source,
-      });
-      created++;
-      lastId = id;
+      try {
+        const id = generateId();
+        const ref = await LibraryStore.saveContent('item', id, content);
+        await LibraryView._pushItem({
+          id, type: 'table', title: target.title, categoryId,
+          content: ref,
+          columns: content.columns.map(c => c.name),
+          summary: { rows: content.rows.length, cols: content.columns.length },
+          source,
+        });
+        created++;
+        lastId = id;
+      } catch (e) {
+        // 途中で失敗したら残りは作らない。作成済みはそのまま残す(二重作成を避ける)
+        failure = e;
+        break;
+      }
     }
 
+    if (failure) {
+      Toast.show(`${created}個まで取り込んで止まりました: ${escapeHtml(failure.message || '保存できませんでした')}`, 'error', 6000);
+      this._state = null;
+      setTimeout(() => this._next(), 0);
+      return;
+    }
     if (!created) { Toast.show('表として読み取れませんでした', 'error'); return false; }
     Toast.show(created > 1 ? `${created}個の表を取り込みました` : '表を取り込みました', 'success');
     this._state = null;

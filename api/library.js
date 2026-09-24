@@ -21,7 +21,8 @@ const k2 = "ictF8g5PFh-w_IbTCL45Z";
 const API_KEY = process.env.SUPABASE_SECRET_KEY || (k1 + k2);
 
 const ID_RE = /^[0-9a-z]{4,40}$/;
-const MAX_PARTS = 40; // 1 パート 1MB 未満 × 40 ≒ 添付 20MB 程度まで
+const MAX_PARTS = 40;             // 1 パート 1MB 未満 × 40 ≒ 添付 20MB 程度まで
+const MAX_INDEX_BYTES = 700000;   // バケットの 1MB 制限より手前で止めて、保存不能になるのを防ぐ
 
 // 検証時は LIBRARY_PREFIX=library-test/ にして本番の library/ に触れない
 function libraryPrefix() {
@@ -39,6 +40,12 @@ async function storageFetch(pathname, init = {}) {
   return { ok: response.ok, status: response.status, text };
 }
 
+// 保存先の応答はログにだけ残す。ブラウザにはバケット名や内部エラーを返さない
+function storageError(action, r) {
+  console.error(`[library] ${action} failed: ${r.status} ${String(r.text).slice(0, 500)}`);
+  return new Error(`${action} failed (HTTP ${r.status})`);
+}
+
 // Supabase はオブジェクトが無いとき 400 か 404 で not_found を返す。
 // ステータスだけで判定すると一時的な失敗を「空」と誤認するので本文も見る
 function isNotFound(status, text) {
@@ -50,7 +57,7 @@ async function readIndex(prefix) {
   const r = await storageFetch(`/object/${BUCKET}/${prefix}index.json`);
   if (r.ok) return { exists: true, index: JSON.parse(r.text) };
   if (isNotFound(r.status, r.text)) return { exists: false, index: null };
-  throw new Error(`Index read failed: ${r.status} ${r.text.slice(0, 200)}`);
+  throw storageError('Index read', r);
 }
 
 function validateIndex(index) {
@@ -64,6 +71,58 @@ function validateIndex(index) {
     seen.add(item.id);
   }
   return null;
+}
+
+// 一覧を実際に書く。呼ぶ前に rev の確認を済ませておくこと
+async function commitIndex(prefix, current, index) {
+  const currentRev = current.exists ? (current.index.rev || 0) : null;
+
+  if (current.exists) {
+    const backup = await storageFetch('/object/copy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bucketId: BUCKET,
+        sourceKey: `${prefix}index.json`,
+        destinationKey: `${prefix}backups/index-${currentRev}-${Date.now()}.json`,
+      }),
+    });
+    if (!backup.ok) throw storageError('Index backup', backup);
+  }
+
+  // writer は書き戻し確認用の印。同時に書かれたときに「勝ったのが自分か」を判定する
+  const writer = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const next = { ...index, rev: (currentRev || 0) + 1, savedAt: new Date().toISOString(), writer };
+  const body = JSON.stringify(next);
+  if (Buffer.byteLength(body) > MAX_INDEX_BYTES) {
+    return { status: 400, body: { error: '一覧が大きくなりすぎました。ゴミ箱を空にしてください' } };
+  }
+
+  // 初回は上書き禁止で作る。同時に別の端末が作っていたら 409 にする
+  const write = await storageFetch(`/object/${BUCKET}/${prefix}index.json`, {
+    method: current.exists ? 'PUT' : 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-upsert': current.exists ? 'true' : 'false',
+      'cache-control': 'no-cache',
+    },
+    body,
+  });
+  if (!write.ok) {
+    if (!current.exists && /duplicate|already exists/i.test(write.text)) {
+      return { status: 409, body: { error: 'conflict', rev: null } };
+    }
+    throw storageError('Index write', write);
+  }
+
+  // 保存先に If-Match が無いので、書けたあとに読み直して自分の書き込みが残っているか確かめる。
+  // 別の端末と重なって上書きされていたら 409 にして、呼び出し側にやり直させる
+  const verify = await readIndex(prefix);
+  if (!verify.exists || verify.index.writer !== writer) {
+    return { status: 409, body: { error: 'conflict', rev: verify.exists ? (verify.index.rev || 0) : null } };
+  }
+
+  return { status: 200, body: { rev: next.rev, savedAt: next.savedAt } };
 }
 
 async function writeIndex({ baseRev = null, index }, prefix) {
@@ -81,37 +140,29 @@ async function writeIndex({ baseRev = null, index }, prefix) {
     const ids = new Set(index.items.map(i => i.id));
     const missing = (current.index.items || []).map(i => i.id).filter(id => !ids.has(id));
     if (missing.length) return { status: 400, body: { error: 'items cannot be removed', missing } };
-
-    const backup = await storageFetch('/object/copy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bucketId: BUCKET,
-        sourceKey: `${prefix}index.json`,
-        destinationKey: `${prefix}backups/index-${currentRev}-${Date.now()}.json`,
-      }),
-    });
-    if (!backup.ok) throw new Error(`Index backup failed: ${backup.status} ${backup.text.slice(0, 200)}`);
   }
 
-  const next = { ...index, rev: (currentRev || 0) + 1, savedAt: new Date().toISOString() };
-  // 初回は上書き禁止で作る。同時に別の端末が作っていたら 409 にする
-  const write = await storageFetch(`/object/${BUCKET}/${prefix}index.json`, {
-    method: current.exists ? 'PUT' : 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-upsert': current.exists ? 'true' : 'false',
-      'cache-control': 'no-cache',
-    },
-    body: JSON.stringify(next),
-  });
-  if (!write.ok) {
-    if (!current.exists && /duplicate|already exists/i.test(write.text)) {
-      return { status: 409, body: { error: 'conflict', rev: null } };
-    }
-    throw new Error(`Index write failed: ${write.status} ${write.text.slice(0, 200)}`);
-  }
-  return { status: 200, body: { rev: next.rev, savedAt: next.savedAt } };
+  return commitIndex(prefix, current, index);
+}
+
+// ゴミ箱を空にする。消せるのは今ゴミ箱に入っている資料の一覧行だけで、
+// 中身のファイルは保存先に残る(あとから取り戻せる)
+async function purgeTrash({ baseRev = null, ids }, prefix) {
+  const current = await readIndex(prefix);
+  if (!current.exists) return { status: 400, body: { error: 'index not found' } };
+
+  const currentRev = current.index.rev || 0;
+  if (baseRev !== currentRev) return { status: 409, body: { error: 'conflict', rev: currentRev } };
+
+  const trashed = new Set((current.index.items || []).filter(i => i.deleted).map(i => i.id));
+  const targets = Array.isArray(ids) ? ids.filter(id => trashed.has(id)) : Array.from(trashed);
+  if (!targets.length) return { status: 400, body: { error: 'nothing to purge' } };
+
+  const remove = new Set(targets);
+  const index = { ...current.index, items: current.index.items.filter(i => !remove.has(i.id)) };
+  const result = await commitIndex(prefix, current, index);
+  if (result.status === 200) result.body.purged = targets.length;
+  return result;
 }
 
 // 保存先のパスはクライアントから受け取らず、ここで組み立てる。
@@ -134,7 +185,7 @@ async function signUpload({ kind, id, count = 1 }, prefix) {
       method: 'POST',
       headers: { 'x-upsert': 'false' },
     });
-    if (!r.ok) throw new Error(`Sign failed: ${r.status} ${r.text.slice(0, 200)}`);
+    if (!r.ok) throw storageError('Sign', r);
     return { path, uploadUrl: STORAGE + JSON.parse(r.text).url };
   }));
   return { status: 200, body: { uploads } };
@@ -162,6 +213,7 @@ export default async function handler(req, res) {
       const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
       let out;
       if (body.action === 'saveIndex') out = await writeIndex(body, prefix);
+      else if (body.action === 'purgeTrash') out = await purgeTrash(body, prefix);
       else if (body.action === 'sign') out = await signUpload(body, prefix);
       else out = { status: 400, body: { error: 'unknown action' } };
       return res.status(out.status).json(out.body);

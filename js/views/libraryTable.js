@@ -48,7 +48,8 @@ function coerceLibraryCell(value) {
   if (!text) return '';
   if (/^-?0\d/.test(text)) return text;
 
-  const numeric = text.replace(/,/g, '');
+  // カンマを外すのは 3 桁区切りの形のときだけ。「40,41」のような書き方を 4041 にしない
+  const numeric = /^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(text) ? text.replace(/,/g, '') : text;
   if (!/^-?\d+(\.\d+)?$/.test(numeric)) return text;
   // 12桁以上の数字はバーコードや伝票番号とみなす。桁区切りを付けても読みにくいだけ
   if (/^\d{12,}$/.test(numeric)) return text;
@@ -107,7 +108,8 @@ const LibraryTable = {
     this.content = this._normalize(content);
     this.editing = !!editing;
     this.draft = editing ? JSON.parse(JSON.stringify(this.content)) : null;
-    if (!sameItem) { this.sortCol = null; this.sortDir = 0; this.filter = ''; this.page = 0; }
+    // 編集中は絞り込み欄も並べ替えも出さないので、持ち越すと追加した行が見えなくなる
+    if (!sameItem || editing) { this.sortCol = null; this.sortDir = 0; this.filter = ''; this.page = 0; }
     this._search = null;
     this._numeric = null;
     this._bindOnce();
@@ -258,6 +260,7 @@ const LibraryTable = {
 
     const filter = this.container.querySelector('.library-table-filter');
     if (filter && this._filterFocused) {
+      this._filterFocused = false;   // 絞り込みの入力直後だけフォーカスを戻す
       filter.focus();
       filter.setSelectionRange(filter.value.length, filter.value.length);
     }
@@ -355,6 +358,7 @@ const LibraryTable = {
   _deleteRow(index) {
     this.draft.rows.splice(index, 1);
     this._search = null;
+    this._numeric = null;
     LibraryView.markDirty();
     this._render();
   },
@@ -414,7 +418,8 @@ const LibraryTable = {
     a.href = url;
     a.download = `${String(this.item.title || '表').replace(/[\\/:*?"<>|]/g, '_')}.csv`;
     a.click();
-    URL.revokeObjectURL(url);
+    // すぐ解放するとブラウザによってはダウンロードが始まらない
+    setTimeout(() => URL.revokeObjectURL(url), 0);
     Toast.show('CSVを保存しました', 'success');
   },
 };

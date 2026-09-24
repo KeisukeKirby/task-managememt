@@ -72,10 +72,15 @@ const Header = {
     if (this.titleEl) this.titleEl.textContent = title;
   },
 
-  // 検索欄が何を探すのかは画面によって変わる
+  // 検索欄が何を探すのかは画面によって変わる。表示中の語もその画面のものに合わせる
   setSearchMode(view) {
     if (!this.searchInput) return;
     this.searchInput.placeholder = view === 'library' ? '資料を検索...' : 'タスクを検索...';
+    this.setSearchValue(view === 'library' ? LibraryView.query : (App.filters.search || ''));
+  },
+
+  setSearchValue(value) {
+    if (this.searchInput && this.searchInput.value !== value) this.searchInput.value = value || '';
   },
 
   clearSearch() {
