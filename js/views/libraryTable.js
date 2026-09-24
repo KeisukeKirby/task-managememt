@@ -39,18 +39,23 @@ function detectLibraryDelimiter(text) {
   return firstLine.includes('\t') ? '\t' : ',';
 }
 
-// 数字だけのセルは数値にする。並べ替えと桁区切り表示のため
+// 数字だけのセルは数値にする。並べ替えと桁区切り表示のため。
+// ただし 0 で始まる番号(品番・バーコード)と、丸められてしまう桁数の数字は文字のまま残す
 function coerceLibraryCell(value) {
   if (value === undefined || value === null) return '';
   if (typeof value === 'number') return Number.isFinite(value) ? value : '';
   const text = String(value).trim();
   if (!text) return '';
+  if (/^-?0\d/.test(text)) return text;
+
   const numeric = text.replace(/,/g, '');
-  if (/^-?\d+(\.\d+)?$/.test(numeric)) {
-    const n = Number(numeric);
-    if (Number.isFinite(n)) return n;
-  }
-  return text;
+  if (!/^-?\d+(\.\d+)?$/.test(numeric)) return text;
+  // 12桁以上の数字はバーコードや伝票番号とみなす。桁区切りを付けても読みにくいだけ
+  if (/^\d{12,}$/.test(numeric)) return text;
+  const n = Number(numeric);
+  if (!Number.isFinite(n)) return text;
+  if (Number.isInteger(n) && !Number.isSafeInteger(n)) return text;
+  return n;
 }
 
 // 二次元配列から表の中身を組み立てる。headerIndex が -1 なら見出しなし
